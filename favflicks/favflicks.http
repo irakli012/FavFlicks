@@ -1,0 +1,6 @@
+@favflicks_HostAddress = http://localhost:5037
+
+GET {{favflicks_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
