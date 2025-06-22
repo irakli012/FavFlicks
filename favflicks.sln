@@ -5,7 +5,7 @@ VisualStudioVersion = 17.13.35919.96
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "favflicks", "favflicks\favflicks.csproj", "{E17A91A8-A246-46BA-B11E-CD20BE9669C8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "favflicks.data", "data\favflicks.data.csproj", "{7B435579-5595-4116-89E4-B1DD39D0A3E1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "favflicks.data", "favflicks.data\favflicks.data.csproj", "{7B435579-5595-4116-89E4-B1DD39D0A3E1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "favflicks.services", "favflicks.services\favflicks.services.csproj", "{611898E3-5CF6-4393-B71E-D25EE6AB828C}"
 EndProject
