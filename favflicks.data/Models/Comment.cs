@@ -12,10 +12,10 @@ namespace favflicks.data.Models
         public string Content { get; set; } = null!;
 
         public int MovieId { get; set; }
-        public Movie Movie { get; set; } = null!;
+        public Movie? Movie { get; set; }
 
         public string UserId { get; set; } = null!; 
-        public AppUser User { get; set; } = null!;
+        public AppUser? User { get; set; }
     }
 
 }

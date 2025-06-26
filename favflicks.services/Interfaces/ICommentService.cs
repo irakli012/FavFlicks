@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace favflicks.services.Interfaces
 {
-    public interface CommentService
+    public interface ICommentService
     {
         Task<IEnumerable<Comment>> GetCommentsByMovieIdAsync(int movieId);
-        Task<Comment> GetCommentsByIdAsync(int id);
+        Task<Comment?> GetCommentsByIdAsync(int id);
         Task AddAsync(Comment comment);
         Task UpdateAsync(Comment comment);
         Task DeleteAsync(int id);
