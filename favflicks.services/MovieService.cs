@@ -17,6 +17,7 @@ namespace favflicks.services
         {
             return await context.Movies
                 .Include(m => m.Tags)
+                .Include(m => m.Comments)
                 .ToListAsync();
         }
 
@@ -24,6 +25,7 @@ namespace favflicks.services
         {
             return await context.Movies
                 .Include(m => m.Tags)
+                .Include(m => m.Comments)
                 .FirstOrDefaultAsync(m => m.Id == id);
         }
 
