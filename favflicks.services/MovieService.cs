@@ -29,7 +29,15 @@ namespace favflicks.services
 
         async Task IMovieService.AddAsync(Movie movie)
         {
-            context.Movies .Add(movie);
+            var tagIds = movie.Tags.Select(t => t.Id).ToList();
+
+            var existingTags = await context.Tags
+                .Where(t => tagIds.Contains(t.Id))
+                .ToListAsync();
+
+            movie.Tags = existingTags;
+
+            context.Movies.Add(movie);
             await context.SaveChangesAsync();
         }
 
