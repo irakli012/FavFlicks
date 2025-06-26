@@ -43,9 +43,29 @@ namespace favflicks.services
 
         async Task IMovieService.UpdateAsync(Movie movie)
         {
-            context.Movies.Update(movie);
+            var existing = await context.Movies
+                .Include(m => m.Tags)
+                .FirstOrDefaultAsync(m => m.Id == movie.Id);
+
+            if (existing == null) return;
+
+            existing.Name = movie.Name;
+            existing.Description = movie.Description;
+            existing.ImagePath = movie.ImagePath;
+            existing.UserId = movie.UserId;
+
+            // avoid dublicate tags error
+            existing.Tags.Clear();
+
+            var tagIds = movie.Tags.Select(t => t.Id).ToList();
+            var tags = await context.Tags.Where(t => tagIds.Contains(t.Id)).ToListAsync();
+
+            foreach (var tag in tags)
+                existing.Tags.Add(tag);
+
             await context.SaveChangesAsync();
         }
+
 
         async Task IMovieService.DeleteAsync(int id)
         {
