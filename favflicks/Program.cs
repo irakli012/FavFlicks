@@ -11,6 +11,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // Add services to the container.
 builder.Services.AddScoped<IMovieService, MovieService>();
+builder.Services.AddScoped<ICommentService, CommentService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
