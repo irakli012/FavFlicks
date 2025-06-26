@@ -20,8 +20,4 @@
     <ProjectReference Include="..\favflicks.services\favflicks.services.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
 </Project>

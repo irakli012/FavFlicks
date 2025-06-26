@@ -18,7 +18,7 @@ namespace favflicks.data.Models
         public string Description { get; set; } = string.Empty;
 
         public string UserId { get; set; } = null!;
-        public AppUser User { get; set; } = null!;
+        public AppUser? User { get; set; }
 
         public string? ImagePath { get; set; }
 
