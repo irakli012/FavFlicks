@@ -35,8 +35,14 @@ namespace favflicks.services
 
         public async Task DeleteAsync(Favorite favorite)
         {
-            context.Favorites.Remove(favorite);
-            await context.SaveChangesAsync();
+            var existing = await context.Favorites
+                .FirstOrDefaultAsync(f => f.UserId == favorite.UserId && f.MovieId == favorite.MovieId);
+
+            if (existing != null)
+            {
+                context.Favorites.Remove(existing);
+                await context.SaveChangesAsync();
+            }
         }
 
         public async Task<Favorite?> GetByIdAsync(int id)
