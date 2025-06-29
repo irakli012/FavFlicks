@@ -11,9 +11,9 @@ namespace favflicks.data.Models
         public int Id { get; set; }
 
         public int MovieId { get; set; }
-        public Movie Movie { get; set; } = null!;
+        public Movie? Movie { get; set; }
 
         public string UserId { get; set; }
-        public AppUser User { get; set; } = null!;
+        public AppUser? User { get; set; }
     }
 }
