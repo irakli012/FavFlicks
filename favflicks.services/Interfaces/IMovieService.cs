@@ -9,8 +9,8 @@ namespace favflicks.services.Interfaces
 {
     public interface IMovieService
     {
-        Task<IEnumerable<Movie>> GetMovieListAsync();
-        Task<Movie?> GetMovieByIdAsync(int id);
+        Task<IEnumerable<Movie>> GetMovieListAsync(string userId);
+        Task<Movie?> GetMovieByIdAsync(int id, string userId);
         Task AddAsync(Movie movie);
         Task UpdateAsync(Movie movie);
         Task DeleteAsync(int id);

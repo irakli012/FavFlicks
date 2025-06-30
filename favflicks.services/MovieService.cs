@@ -13,12 +13,13 @@ namespace favflicks.services
     public class MovieService(AppDbContext context) : IMovieService
     {
 
-        public async Task<IEnumerable<Movie>> GetMovieListAsync()
+        public async Task<IEnumerable<Movie>> GetMovieListAsync(string userId)
         {
             var movies = await context.Movies
                     .Include(m => m.Tags)
                     .Include(m => m.Comments)
                     .Include(m => m.Ratings)
+                    .Include(m => m.Favorites)
                     .ToListAsync();
 
             foreach (var movie in movies)
@@ -26,17 +27,20 @@ namespace favflicks.services
                 movie.AverageRating = movie.Ratings.Any()
                     ? movie.Ratings.Average(r => (double)r.Value)
                     : 0;
+
+                movie.IsFavorite = movie.Favorites.Any(f => f.UserId == userId);
             }
 
             return movies;
         }
 
-        async Task<Movie?> IMovieService.GetMovieByIdAsync(int id)
+        async Task<Movie?> IMovieService.GetMovieByIdAsync(int id, string userId)
         {
             var movie = await context.Movies
                 .Include(m => m.Tags)
                 .Include(m => m.Comments)
                 .Include(m => m.Ratings)
+                .Include(m => m.Favorites)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (movie != null)
@@ -44,6 +48,8 @@ namespace favflicks.services
                 movie.AverageRating = movie.Ratings.Any()
                     ? movie.Ratings.Average(r => (double)r.Value)
                     : 0;
+
+                movie.IsFavorite = movie.Favorites.Any(f => f.UserId == userId);
             }
 
             return movie;
