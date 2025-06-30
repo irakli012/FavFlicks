@@ -15,18 +15,38 @@ namespace favflicks.services
 
         public async Task<IEnumerable<Movie>> GetMovieListAsync()
         {
-            return await context.Movies
-                .Include(m => m.Tags)
-                .Include(m => m.Comments)
-                .ToListAsync();
+            var movies = await context.Movies
+                    .Include(m => m.Tags)
+                    .Include(m => m.Comments)
+                    .Include(m => m.Ratings)
+                    .ToListAsync();
+
+            foreach (var movie in movies)
+            {
+                movie.AverageRating = movie.Ratings.Any()
+                    ? movie.Ratings.Average(r => (double)r.Value)
+                    : 0;
+            }
+
+            return movies;
         }
 
         async Task<Movie?> IMovieService.GetMovieByIdAsync(int id)
         {
-            return await context.Movies
+            var movie = await context.Movies
                 .Include(m => m.Tags)
                 .Include(m => m.Comments)
+                .Include(m => m.Ratings)
                 .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (movie != null)
+            {
+                movie.AverageRating = movie.Ratings.Any()
+                    ? movie.Ratings.Average(r => (double)r.Value)
+                    : 0;
+            }
+
+            return movie;
         }
 
         async Task IMovieService.AddAsync(Movie movie)
