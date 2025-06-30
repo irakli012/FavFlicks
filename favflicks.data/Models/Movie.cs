@@ -26,6 +26,9 @@ namespace favflicks.data.Models
         [NotMapped]
         public double AverageRating { get; set; }
 
+        [NotMapped]
+        public bool IsFavorite { get; set; }
+
 
         public ICollection<Tag> Tags { get; set; } = new List<Tag>();
         public ICollection<MovieRating> Ratings { get; set; } = new List<MovieRating>();

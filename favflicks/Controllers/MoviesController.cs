@@ -11,16 +11,16 @@ namespace favflicks.Controllers
     public class MoviesController(IMovieService movieService) : ControllerBase
     {
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Movie>>> GetAll()
+        public async Task<ActionResult<IEnumerable<Movie>>> GetAll([FromQuery] string userId)
         {
-            var movies = await movieService.GetMovieListAsync();
+            var movies = await movieService.GetMovieListAsync(userId);
             return Ok(movies);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Movie>> GetMovie(int id)
+        public async Task<ActionResult<Movie>> GetMovie(int id, [FromQuery] string userId)
         {
-            var movie = await movieService.GetMovieByIdAsync(id);
+            var movie = await movieService.GetMovieByIdAsync(id, userId);
             return Ok(movie);
         }
 
