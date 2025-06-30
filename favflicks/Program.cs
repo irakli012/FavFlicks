@@ -14,6 +14,7 @@ builder.Services.AddScoped<IMovieService, MovieService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IFavoriteService, FavoriteService>();
 builder.Services.AddScoped<IRatingService, RatingService>();
+builder.Services.AddScoped<ITagService, TagService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
