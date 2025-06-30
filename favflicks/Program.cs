@@ -13,6 +13,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IMovieService, MovieService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IFavoriteService, FavoriteService>();
+builder.Services.AddScoped<IRatingService, RatingService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
