@@ -16,7 +16,7 @@ namespace favflicks.data
         public DbSet<Movie> Movies { get; set; }
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Favorite> Favorites { get; set; }
-        public DbSet<MovieRating> MoviesRating { get; set; }
+        public DbSet<MovieRating> MovieRatings { get; set; }
         public DbSet<Tag> Tags { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
