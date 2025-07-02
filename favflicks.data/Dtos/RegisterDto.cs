@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace favflicks.data.Dtos
 {
-    public class RegistorDto
+    public class RegisterDto
     {
         public string UserName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
