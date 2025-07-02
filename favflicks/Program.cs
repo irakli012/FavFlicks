@@ -51,6 +51,16 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+//to accept simple passwords
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.Password.RequireDigit = false;
+    options.Password.RequireLowercase = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequiredLength = 6;
+});
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
