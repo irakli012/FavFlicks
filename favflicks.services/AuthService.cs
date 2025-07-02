@@ -16,7 +16,7 @@ namespace favflicks.services
 {
     public class AuthService(UserManager<AppUser> userManager, IConfiguration config) : IAuthService
     {
-        public async Task<string?> RegisterAsync(RegistorDto dto)
+        public async Task<string?> RegisterAsync(RegisterDto dto)
         {
             var user = new AppUser
             {

@@ -9,7 +9,7 @@ namespace favflicks.services.Interfaces
 {
     public interface IAuthService
     {
-        Task<string?> RegisterAsync(RegistorDto dto);
+        Task<string?> RegisterAsync(RegisterDto dto);
         Task<string?> LoginAsync(LoginDto dto);
     }
 }
