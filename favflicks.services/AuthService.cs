@@ -25,7 +25,13 @@ namespace favflicks.services
             };
 
             var result = await userManager.CreateAsync(user, dto.Password);
-            if (!result.Succeeded) return null;
+            if (!result.Succeeded)
+            {
+                // Log the real errors to console
+                var errorMessage = string.Join("; ", result.Errors.Select(e => e.Description));
+                Console.WriteLine("Registration failed: " + errorMessage);
+                return null;
+            }
 
             return GenerateJwtToken(user);
         }

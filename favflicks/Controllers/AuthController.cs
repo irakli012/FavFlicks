@@ -13,8 +13,7 @@ namespace favflicks.Controllers
         public async Task<IActionResult> Register(RegisterDto dto)
         {
             var token = await authService.RegisterAsync(dto);
-            if (token != null)
-                return BadRequest("registration failed");
+            if (token == null) return BadRequest("Registration failed. check logs.");
             return Ok(new { token });
         }
 
