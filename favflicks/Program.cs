@@ -74,6 +74,9 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// call admin seed
+await SeedRolesAndAdminAsync(app);
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -90,3 +93,35 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+// Seed Roles + Admin
+static async Task SeedRolesAndAdminAsync(WebApplication app)
+{
+    using var scope = app.Services.CreateScope();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
+
+    var adminRole = "Admin";
+    var adminEmail = "admin@favflicks.com";
+    var adminPassword = "Admin123";
+
+    if (!await roleManager.RoleExistsAsync(adminRole))
+    {
+        await roleManager.CreateAsync(new IdentityRole(adminRole));
+    }
+
+    var adminUser = await userManager.FindByEmailAsync(adminEmail);
+    if (adminUser == null)
+    {
+        adminUser = new AppUser
+        {
+            UserName = "admin",
+            Email = adminEmail
+        };
+        var result = await userManager.CreateAsync(adminUser, adminPassword);
+        if (result.Succeeded)
+        {
+            await userManager.AddToRoleAsync(adminUser, adminRole);
+        }
+    }
+}
