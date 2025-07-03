@@ -24,8 +24,8 @@ namespace favflicks.data
             base.OnModelCreating(modelBuilder);
 
             // Seed default user
-            var defaultUser = SeedData.GetDefaultUser();
-            modelBuilder.Entity<AppUser>().HasData(defaultUser);
+            //var defaultUser = SeedData.GetDefaultUser();
+            //modelBuilder.Entity<AppUser>().HasData(defaultUser);
 
             modelBuilder.Entity<Comment>()
                 .HasOne(c => c.Movie)
