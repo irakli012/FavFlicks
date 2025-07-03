@@ -1,7 +1,9 @@
 ﻿using favflicks.data.Dtos;
 using favflicks.services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace favflicks.Controllers
 {
@@ -9,6 +11,14 @@ namespace favflicks.Controllers
     [ApiController]
     public class AuthController(IAuthService authService) : ControllerBase
     {
+        [Authorize]
+        [HttpGet("test-auth")]
+        public IActionResult TestAuth()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return Ok($"You're authorized as user {userId}");
+        }
+
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterDto dto)
         {
