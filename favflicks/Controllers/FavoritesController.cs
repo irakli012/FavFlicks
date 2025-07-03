@@ -14,6 +14,7 @@ namespace favflicks.Controllers
     public class FavoritesController(IFavoriteService favoriteService) : ControllerBase
     {
         [HttpGet("user")]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<Favorite>>> GetFavoritesByLoggedInUser()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
