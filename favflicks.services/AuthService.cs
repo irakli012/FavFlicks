@@ -4,17 +4,13 @@ using favflicks.services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace favflicks.services
 {
-    public class AuthService(UserManager<AppUser> userManager, IConfiguration config) : IAuthService
+    public class AuthService(UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager, IConfiguration config) : IAuthService
     {
         public async Task<string?> RegisterAsync(RegisterDto dto)
         {
@@ -27,11 +23,16 @@ namespace favflicks.services
             var result = await userManager.CreateAsync(user, dto.Password);
             if (!result.Succeeded)
             {
-                // Log the real errors to console
                 var errorMessage = string.Join("; ", result.Errors.Select(e => e.Description));
                 Console.WriteLine("Registration failed: " + errorMessage);
                 return null;
             }
+
+            // Add default role
+            if (!await roleManager.RoleExistsAsync("User"))
+                await roleManager.CreateAsync(new IdentityRole("User"));
+
+            await userManager.AddToRoleAsync(user, "User");
 
             return GenerateJwtToken(user);
         }
@@ -47,11 +48,14 @@ namespace favflicks.services
 
         private string GenerateJwtToken(AppUser user)
         {
-            var claims = new[]
+            var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
-                new Claim(ClaimTypes.Name, user.UserName!),
+                new Claim(ClaimTypes.Name, user.UserName!)
             };
+
+            var roles = userManager.GetRolesAsync(user).Result;
+            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -68,4 +72,3 @@ namespace favflicks.services
         }
     }
 }
-    
