@@ -1,5 +1,6 @@
 ﻿using favflicks.data.Models;
 using favflicks.services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -26,6 +27,7 @@ namespace favflicks.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> Add([FromBody] Tag tag)
         {
             await tagService.AddAsync(tag);
@@ -33,6 +35,7 @@ namespace favflicks.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> Update(int id, [FromBody] Tag tag)
         {
             if (id != tag.Id) return BadRequest("ID mismatch");
@@ -41,6 +44,7 @@ namespace favflicks.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> Delete(int id)
         {
             await tagService.DeleteAsync(id);
