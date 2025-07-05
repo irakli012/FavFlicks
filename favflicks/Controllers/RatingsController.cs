@@ -1,7 +1,9 @@
 ﻿using favflicks.data.Models;
 using favflicks.services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace favflicks.Controllers
 {
@@ -16,18 +18,22 @@ namespace favflicks.Controllers
             return Ok(ratings);
         }
 
-        [HttpGet("movie/{movieId}/user/{userid}")]
-        public async Task<ActionResult<IEnumerable<MovieRating>>> GetUserRatingForMovie(string userid)
+        [HttpGet("movie/{movieId}/user")]
+        [Authorize]
+        public async Task<ActionResult<MovieRating?>> GetCurrentUserRatingForMovie(int movieId)
         {
-            var rating = await ratingService.GetRatingsByUserIdAsync(userid);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+                return Unauthorized();
 
-            if (rating == null)
-                return NotFound();
+            var ratings = await ratingService.GetRatingsByUserIdAsync(userId);
+            var rating = ratings.FirstOrDefault(r => r.MovieId == movieId);
 
-            return Ok(rating);
+            return rating == null ? NotFound() : Ok(rating);
         }
 
         [HttpGet("{id}")]
+        [Authorize(Roles = "Admin")] // for now
         public async Task<ActionResult<MovieRating?>> GetRating(int id)
         {
             var rating = await ratingService.GetByIdAsync(id);
@@ -39,8 +45,15 @@ namespace favflicks.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult> AddOrUpdateRating([FromBody] MovieRating rating)
         {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            rating.UserId = userId;
+
             await ratingService.AddOrUpdateAsync(rating);
             return Ok();
         }
