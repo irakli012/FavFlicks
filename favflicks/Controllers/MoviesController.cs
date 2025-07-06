@@ -30,9 +30,15 @@ namespace favflicks.Controllers
 
         [HttpPost]
         [Authorize]
-        public async Task<ActionResult> Create(Movie movie)
+        public async Task<ActionResult> Create([FromBody] Movie movie)
         {
-            movie.UserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            //force the userid to be currect user
+            movie.UserId = userId;
+
             await movieService.AddAsync(movie);
             return CreatedAtAction(nameof(GetMovie), new { id = movie.Id }, movie);
         }

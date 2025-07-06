@@ -1,4 +1,5 @@
 ﻿using favflicks.data.Enums;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -18,6 +19,8 @@ namespace favflicks.data.Models
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
 
+        [Required]
+        [BindNever]
         public string UserId { get; set; } = null!;
         public AppUser? User { get; set; }
 
