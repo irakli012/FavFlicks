@@ -8,12 +8,13 @@ function MovieList() {
   const API_URL = "https://localhost:7245/api/Movies";
 
   useEffect(() => {
-    axios.get(API_URL)
-      .then(res => {
+    axios
+      .get(API_URL)
+      .then((res) => {
         setMovies(res.data);
         setLoading(false);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error("Error fetching movies:", err);
         setLoading(false);
       });
@@ -23,28 +24,50 @@ function MovieList() {
   if (movies.length === 0) return <p>No movies found.</p>;
 
   return (
-    <div className="row">
-      {movies.map(movie => (
-        <div key={movie.id} className="col-md-4 mb-4">
-          <div className="card h-100">
-            <img 
-              src={movie.imagePath || "https://via.placeholder.com/300x450?text=No+Image"} 
-              className="card-img-top" 
-              alt={movie.name} 
-              style={{height: "450px", objectFit: "cover"}}
-            />
-            <div className="card-body d-flex flex-column">
-              <h5 className="card-title">{movie.name}</h5>
-              <p className="card-text flex-grow-1">{movie.description?.substring(0, 100)}...</p>
-              <div>
-                <strong>Rating: </strong> {movie.averageRating?.toFixed(1) || "N/A"} / 5
+    <div className="container">
+      <div className="row">
+        {movies.map((movie) => (
+          <div key={movie.id} className="col-lg-4 col-md-6 mb-4">
+            <div className="card h-100 shadow-sm">
+              <div
+                style={{
+                  position: "relative",
+                  width: "100%",
+                  paddingBottom: "62.5%", // 2400 / 3840 = 0.625 (16:10 aspect ratio)
+                  overflow: "hidden",
+                  borderTopLeftRadius: "0.25rem",
+                  borderTopRightRadius: "0.25rem",
+                }}
+              >
+                <img
+                  src={`https://localhost:7245${movie.imagePath}`}
+                  alt={movie.name}
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                  }}
+                />
               </div>
-              {/* Placeholder Favorite Button */}
-              <button className="btn btn-outline-primary mt-2">♡ Favorite</button>
+
+              <div className="card-body d-flex flex-column">
+                <h5 className="card-title">{movie.name}</h5>
+                <p className="card-text flex-grow-1">
+                  {movie.description?.substring(0, 100)}...
+                </p>
+                <div>
+                  <strong>Rating: </strong>{" "}
+                  {movie.averageRating?.toFixed(1) || "N/A"} / 10
+                </div>
+                <button className="btn btn-outline-primary mt-2">♡ Favorite</button>
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
