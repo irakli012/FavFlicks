@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import "./MovieList.css"; // make sure this includes the hover styles
 
 function MovieList() {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   const API_URL = "https://localhost:7245/api/Movies";
 
@@ -27,13 +30,17 @@ function MovieList() {
     <div className="container">
       <div className="row">
         {movies.map((movie) => (
-          <div key={movie.id} className="col-lg-4 col-md-6 mb-4">
-            <div className="card h-100 shadow-sm">
+          <div
+            key={movie.id}
+            className="col-lg-4 col-md-6 mb-4"
+            onClick={() => navigate(`/movies/${movie.id}`)}
+          >
+            <div className="card h-100 shadow-sm movie-card">
               <div
                 style={{
                   position: "relative",
                   width: "100%",
-                  paddingBottom: "62.5%", // 2400 / 3840 = 0.625 (16:10 aspect ratio)
+                  paddingBottom: "62.5%",
                   overflow: "hidden",
                   borderTopLeftRadius: "0.25rem",
                   borderTopRightRadius: "0.25rem",
@@ -59,10 +66,12 @@ function MovieList() {
                   {movie.description?.substring(0, 100)}...
                 </p>
                 <div>
-                  <strong>Rating: </strong>{" "}
+                  <strong>Rating:</strong>{" "}
                   {movie.averageRating?.toFixed(1) || "N/A"} / 10
                 </div>
-                <button className="btn btn-outline-primary mt-2">♡ Favorite</button>
+                <button className="btn btn-outline-primary mt-2">
+                  ♡ Favorite
+                </button>
               </div>
             </div>
           </div>
