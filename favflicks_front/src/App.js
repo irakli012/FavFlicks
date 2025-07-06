@@ -1,26 +1,41 @@
-import React from 'react';
-import { Routes, Route, Link } from 'react-router-dom';
+import React from "react";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import MovieList from "./components/MovieList";
 
-function Home() {
-  return <h2>Home Page</h2>;
+function HomePage() {
+  return (
+    <div>
+      <h1>FavFlicks</h1>
+      <MovieList />
+    </div>
+  );
 }
 
-function Movies() {
-  return <h2>Movies List Page</h2>;
+function MovieDetailsPage() {
+  return <h2>Movie Details Page (Coming Soon)</h2>;
 }
 
 function App() {
   return (
-    <div className="container">
-      <nav className="my-3">
-        <Link to="/" className="me-3">Home</Link>
-        <Link to="/movies">Movies</Link>
-      </nav>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/movies" element={<Movies />} />
-      </Routes>
-    </div>
+    <Router>
+      <div className="container mt-4">
+        <nav>
+          <ul className="nav nav-tabs">
+            <li className="nav-item">
+              <Link className="nav-link" to="/">Home</Link>
+            </li>
+            <li className="nav-item">
+              <Link className="nav-link" to="/movies/1">Sample Movie</Link>
+            </li>
+          </ul>
+        </nav>
+
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/movies/:id" element={<MovieDetailsPage />} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 
