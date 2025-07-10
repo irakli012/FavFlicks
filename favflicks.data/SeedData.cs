@@ -28,30 +28,26 @@ public static class SeedData
 
     public static List<Movie> GetPredefinedMovies() =>
     [
-        new Movie
-        {
-            Id = 1,
-            Name = "Inception",
-            Description = "A thief uses dream-sharing technology to infiltrate minds.",
-            UserId = DefaultUserId,
-            ImagePath = "/images/movies/inception.jpg"
-        },
-        new Movie
-        {
-            Id = 2,
-            Name = "The Godfather",
-            Description = "The aging patriarch of a crime dynasty transfers control to his son.",
-            UserId = DefaultUserId,
-            ImagePath = "/images/movies/godfather.jpg"
-        },
-        new Movie
-        {
-            Id = 3,
-            Name = "Superbad",
-            Description = "Two teens navigate friendship and parties before college.",
-            UserId = DefaultUserId,
-            ImagePath = "/images/movies/superbad.jpg"
-        }
+        new Movie { Id = 1, Name = "Inception", Description = "A thief uses dream-sharing technology to infiltrate minds.", UserId = DefaultUserId, ImagePath = "/images/movies/inception.jpg" },
+    new Movie { Id = 2, Name = "The Godfather", Description = "The aging patriarch of a crime dynasty transfers control to his son.", UserId = DefaultUserId, ImagePath = "/images/movies/godfather.jpg" },
+    new Movie { Id = 3, Name = "Superbad", Description = "Two teens navigate friendship and parties before college.", UserId = DefaultUserId, ImagePath = "/images/movies/superbad.jpg" },
+    new Movie { Id = 4, Name = "The Matrix", Description = "A hacker learns about the true nature of his reality.", UserId = DefaultUserId, ImagePath = "/images/movies/matrix.jpg" },
+    new Movie { Id = 5, Name = "Interstellar", Description = "A team travels through a wormhole in space to ensure humanity's survival.", UserId = DefaultUserId, ImagePath = "/images/movies/interstellar.jpg" },
+    new Movie { Id = 6, Name = "Pulp Fiction", Description = "The lives of criminals intertwine in this nonlinear story.", UserId = DefaultUserId, ImagePath = "/images/movies/pulpfiction.jpg" },
+    new Movie { Id = 7, Name = "The Dark Knight", Description = "Batman faces his greatest challenge in the form of the Joker.", UserId = DefaultUserId, ImagePath = "/images/movies/darkknight.jpg" },
+    new Movie { Id = 8, Name = "Forrest Gump", Description = "A man's simple outlook leads him through incredible life events.", UserId = DefaultUserId, ImagePath = "/images/movies/forrestgump.jpg" },
+    new Movie { Id = 9, Name = "The Avengers", Description = "Earth's mightiest heroes must unite to save the world.", UserId = DefaultUserId, ImagePath = "/images/movies/avengers.jpg" },
+    new Movie { Id = 10, Name = "Titanic", Description = "A romance unfolds aboard the ill-fated RMS Titanic.", UserId = DefaultUserId, ImagePath = "/images/movies/titanic.jpg" },
+    new Movie { Id = 11, Name = "Gladiator", Description = "A betrayed Roman general seeks revenge.", UserId = DefaultUserId, ImagePath = "/images/movies/gladiator.jpg" },
+    new Movie { Id = 12, Name = "Toy Story", Description = "Toys come to life when humans aren't around.", UserId = DefaultUserId, ImagePath = "/images/movies/toystory.jpg" },
+    new Movie { Id = 13, Name = "Jurassic Park", Description = "A theme park suffers a major security breakdown with dinosaurs.", UserId = DefaultUserId, ImagePath = "/images/movies/jurassicpark.jpg" },
+    new Movie { Id = 14, Name = "The Shawshank Redemption", Description = "Two imprisoned men bond over the years.", UserId = DefaultUserId, ImagePath = "/images/movies/shawshank.jpg" },
+    new Movie { Id = 15, Name = "The Lion King", Description = "A lion cub's journey to reclaim his kingdom.", UserId = DefaultUserId, ImagePath = "/images/movies/lionking.jpg" },
+    new Movie { Id = 16, Name = "Back to the Future", Description = "A teenager travels back in time to help his parents.", UserId = DefaultUserId, ImagePath = "/images/movies/backtothefuture.jpg" },
+    new Movie { Id = 17, Name = "The Social Network", Description = "The story of Facebook's founding.", UserId = DefaultUserId, ImagePath = "/images/movies/socialnetwork.jpg" },
+    new Movie { Id = 18, Name = "Fight Club", Description = "An office worker forms an underground fight club.", UserId = DefaultUserId, ImagePath = "/images/movies/fightclub.jpg" },
+    new Movie { Id = 19, Name = "Coco", Description = "A boy journeys to the Land of the Dead to uncover family secrets.", UserId = DefaultUserId, ImagePath = "/images/movies/coco.jpg" },
+    new Movie { Id = 20, Name = "La La Land", Description = "A jazz musician and an aspiring actress fall in love.", UserId = DefaultUserId, ImagePath = "/images/movies/lalaland.jpg" }
     ];
 
     public static object[] GetMovieTagRelations() =>
@@ -59,7 +55,35 @@ public static class SeedData
         new { MoviesId = 1, TagsId = ActionTagId },
         new { MoviesId = 1, TagsId = SciFiTagId },
         new { MoviesId = 2, TagsId = DramaTagId },
-        new { MoviesId = 3, TagsId = ComedyTagId }
+        new { MoviesId = 3, TagsId = ComedyTagId },
+        new { MoviesId = 4, TagsId = ActionTagId },
+        new { MoviesId = 4, TagsId = SciFiTagId },
+        new { MoviesId = 5, TagsId = SciFiTagId },
+        new { MoviesId = 5, TagsId = DramaTagId },
+        new { MoviesId = 6, TagsId = DramaTagId },
+        new { MoviesId = 7, TagsId = ActionTagId },
+        new { MoviesId = 7, TagsId = DramaTagId },
+        new { MoviesId = 8, TagsId = DramaTagId },
+        new { MoviesId = 9, TagsId = ActionTagId },
+        new { MoviesId = 9, TagsId = SciFiTagId },
+        new { MoviesId = 10, TagsId = DramaTagId },
+        new { MoviesId = 11, TagsId = ActionTagId },
+        new { MoviesId = 11, TagsId = DramaTagId },
+        new { MoviesId = 12, TagsId = ComedyTagId },
+        new { MoviesId = 12, TagsId = SciFiTagId },
+        new { MoviesId = 13, TagsId = SciFiTagId },
+        new { MoviesId = 13, TagsId = ActionTagId },
+        new { MoviesId = 14, TagsId = DramaTagId },
+        new { MoviesId = 15, TagsId = DramaTagId },
+        new { MoviesId = 15, TagsId = ActionTagId },
+        new { MoviesId = 16, TagsId = SciFiTagId },
+        new { MoviesId = 16, TagsId = ComedyTagId },
+        new { MoviesId = 17, TagsId = DramaTagId },
+        new { MoviesId = 18, TagsId = DramaTagId },
+        new { MoviesId = 19, TagsId = ComedyTagId },
+        new { MoviesId = 19, TagsId = DramaTagId },
+        new { MoviesId = 20, TagsId = DramaTagId },
+        new { MoviesId = 20, TagsId = ComedyTagId }
     ];
 
     public static AppUser GetDefaultUser()
