@@ -1,12 +1,14 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 // MovieCard component to display individual movie details
 function MovieCard({ movie, isLarge = false }) {
-  const outerDivClasses = `flex flex-col gap-3 ${isLarge ? 'pb-4' : 'pb-3'} ${isLarge ? 'min-w-[200px]' : 'w-full'}`;
+  const outerDivClasses = `flex flex-col gap-3 ${isLarge ? 'pb-4' : 'pb-3'} ${isLarge ? 'min-w-[200px]' : 'w-full'} transition-transform duration-200 ease-in-out hover:scale-105 cursor-pointer`;
   const imageDivClasses = `bg-center bg-no-repeat bg-cover rounded-xl ${isLarge ? 'aspect-[2/3] w-[200px]' : 'aspect-[3/4] w-full'}`;
 
   return (
-    <div className={outerDivClasses}>
+    <Link to={`/movie/${movie.id || movie.Id}`}
+      className={outerDivClasses} style={{ textDecoration: 'none' }}>
       <div
         className={imageDivClasses}
         style={{
@@ -22,7 +24,7 @@ function MovieCard({ movie, isLarge = false }) {
           Rating: {movie.averageRating != null ? movie.averageRating.toFixed(1) : 'N/A'}
         </p>
       </div>
-    </div>
+    </Link>
   );
 }
 
