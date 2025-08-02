@@ -1,11 +1,13 @@
 using favflicks.data;
 using favflicks.data.Models;
+using favflicks.data.Models.TMDB;
 using favflicks.services;
 using favflicks.services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Net.Http.Headers;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,6 +28,17 @@ builder.Services.AddScoped<IFavoriteService, FavoriteService>();
 builder.Services.AddScoped<IRatingService, RatingService>();
 builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+
+builder.Services.Configure<TmdbSettings>(builder.Configuration.GetSection("TMDB"));
+
+// Configure TMDB HttpClient
+builder.Services.AddHttpClient("TMDB", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["TMDB:BaseUrl"]);
+    client.DefaultRequestHeaders.Accept.Clear();
+    client.DefaultRequestHeaders.Accept.Add(
+        new MediaTypeWithQualityHeaderValue("application/json"));
+});
 
 // JWT
 var jwtKey = builder.Configuration["Jwt:Key"];
