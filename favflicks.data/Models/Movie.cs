@@ -22,6 +22,8 @@ namespace favflicks.data.Models
         // TMDB Fields
         public MovieSource Source { get; set; } = MovieSource.UserImport;
         public string? ExternalId { get; set; }
+        public string? ExternalUrl { get; set; }
+        public string? ImdbUrl { get; set; }
 
         public string? YouTubeTrailerId { get; set; }   
         public string? ImagePath { get; set; }
