@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using favflicks.data.Enums;
 using favflicks.data.Models;
 
 namespace favflicks.data;
@@ -28,26 +28,26 @@ public static class SeedData
 
     public static List<Movie> GetPredefinedMovies() =>
     [
-        new Movie { Id = 1, Name = "Inception", Description = "A thief uses dream-sharing technology to infiltrate minds.", UserId = DefaultUserId, ImagePath = "/images/movies/inception.jpg" },
-    new Movie { Id = 2, Name = "The Godfather", Description = "The aging patriarch of a crime dynasty transfers control to his son.", UserId = DefaultUserId, ImagePath = "/images/movies/godfather.jpg" },
-    new Movie { Id = 3, Name = "Superbad", Description = "Two teens navigate friendship and parties before college.", UserId = DefaultUserId, ImagePath = "/images/movies/superbad.jpg" },
-    new Movie { Id = 4, Name = "The Matrix", Description = "A hacker learns about the true nature of his reality.", UserId = DefaultUserId, ImagePath = "/images/movies/matrix.jpg" },
-    new Movie { Id = 5, Name = "Interstellar", Description = "A team travels through a wormhole in space to ensure humanity's survival.", UserId = DefaultUserId, ImagePath = "/images/movies/interstellar.jpg" },
-    new Movie { Id = 6, Name = "Pulp Fiction", Description = "The lives of criminals intertwine in this nonlinear story.", UserId = DefaultUserId, ImagePath = "/images/movies/pulpfiction.jpg" },
-    new Movie { Id = 7, Name = "The Dark Knight", Description = "Batman faces his greatest challenge in the form of the Joker.", UserId = DefaultUserId, ImagePath = "/images/movies/darkknight.jpg" },
-    new Movie { Id = 8, Name = "Forrest Gump", Description = "A man's simple outlook leads him through incredible life events.", UserId = DefaultUserId, ImagePath = "/images/movies/forrestgump.jpg" },
-    new Movie { Id = 9, Name = "The Avengers", Description = "Earth's mightiest heroes must unite to save the world.", UserId = DefaultUserId, ImagePath = "/images/movies/avengers.jpg" },
-    new Movie { Id = 10, Name = "Titanic", Description = "A romance unfolds aboard the ill-fated RMS Titanic.", UserId = DefaultUserId, ImagePath = "/images/movies/titanic.jpg" },
-    new Movie { Id = 11, Name = "Gladiator", Description = "A betrayed Roman general seeks revenge.", UserId = DefaultUserId, ImagePath = "/images/movies/gladiator.jpg" },
-    new Movie { Id = 12, Name = "Toy Story", Description = "Toys come to life when humans aren't around.", UserId = DefaultUserId, ImagePath = "/images/movies/toystory.jpg" },
-    new Movie { Id = 13, Name = "Jurassic Park", Description = "A theme park suffers a major security breakdown with dinosaurs.", UserId = DefaultUserId, ImagePath = "/images/movies/jurassicpark.jpg" },
-    new Movie { Id = 14, Name = "The Shawshank Redemption", Description = "Two imprisoned men bond over the years.", UserId = DefaultUserId, ImagePath = "/images/movies/shawshank.jpg" },
-    new Movie { Id = 15, Name = "The Lion King", Description = "A lion cub's journey to reclaim his kingdom.", UserId = DefaultUserId, ImagePath = "/images/movies/lionking.jpg" },
-    new Movie { Id = 16, Name = "Back to the Future", Description = "A teenager travels back in time to help his parents.", UserId = DefaultUserId, ImagePath = "/images/movies/backtothefuture.jpg" },
-    new Movie { Id = 17, Name = "The Social Network", Description = "The story of Facebook's founding.", UserId = DefaultUserId, ImagePath = "/images/movies/socialnetwork.jpg" },
-    new Movie { Id = 18, Name = "Fight Club", Description = "An office worker forms an underground fight club.", UserId = DefaultUserId, ImagePath = "/images/movies/fightclub.jpg" },
-    new Movie { Id = 19, Name = "Coco", Description = "A boy journeys to the Land of the Dead to uncover family secrets.", UserId = DefaultUserId, ImagePath = "/images/movies/coco.jpg" },
-    new Movie { Id = 20, Name = "La La Land", Description = "A jazz musician and an aspiring actress fall in love.", UserId = DefaultUserId, ImagePath = "/images/movies/lalaland.jpg" }
+        new Movie { Id = 1, Name = "Inception", Description = "A thief uses dream-sharing technology to infiltrate minds.", AddedByUserId = DefaultUserId, Source = MovieSource.UserImport, ImagePath = "/images/movies/inception.jpg", DateAdded = DateTime.UtcNow },
+        new Movie { Id = 2, Name = "The Godfather", Description = "The aging patriarch of a crime dynasty transfers control to his son.", AddedByUserId = DefaultUserId, Source = MovieSource.UserImport, ImagePath = "/images/movies/godfather.jpg", DateAdded = DateTime.UtcNow },
+        new Movie { Id = 3, Name = "Superbad", Description = "Two teens navigate friendship and parties before college.", AddedByUserId = DefaultUserId, Source = MovieSource.UserImport, ImagePath = "/images/movies/superbad.jpg", DateAdded = DateTime.UtcNow },
+        new Movie { Id = 4, Name = "The Matrix", Description = "A hacker learns about the true nature of his reality.", AddedByUserId = DefaultUserId, Source = MovieSource.UserImport, ImagePath = "/images/movies/matrix.jpg", DateAdded = DateTime.UtcNow },
+        new Movie { Id = 5, Name = "Interstellar", Description = "A team travels through a wormhole in space to ensure humanity's survival.", AddedByUserId = DefaultUserId, Source = MovieSource.UserImport, ImagePath = "/images/movies/interstellar.jpg", DateAdded = DateTime.UtcNow },
+        new Movie { Id = 6, Name = "Pulp Fiction", Description = "The lives of criminals intertwine in this nonlinear story.", AddedByUserId = DefaultUserId, Source = MovieSource.UserImport, ImagePath = "/images/movies/pulpfiction.jpg", DateAdded = DateTime.UtcNow },
+        new Movie { Id = 7, Name = "The Dark Knight", Description = "Batman faces his greatest challenge in the form of the Joker.", AddedByUserId = DefaultUserId, Source = MovieSource.UserImport, ImagePath = "/images/movies/darkknight.jpg", DateAdded = DateTime.UtcNow },
+        new Movie { Id = 8, Name = "Forrest Gump", Description = "A man's simple outlook leads him through incredible life events.", AddedByUserId = DefaultUserId, Source = MovieSource.UserImport, ImagePath = "/images/movies/forrestgump.jpg", DateAdded = DateTime.UtcNow },
+        new Movie { Id = 9, Name = "The Avengers", Description = "Earth's mightiest heroes must unite to save the world.", AddedByUserId = DefaultUserId, Source = MovieSource.UserImport, ImagePath = "/images/movies/avengers.jpg", DateAdded = DateTime.UtcNow },
+        new Movie { Id = 10, Name = "Titanic", Description = "A romance unfolds aboard the ill-fated RMS Titanic.", AddedByUserId = DefaultUserId, Source = MovieSource.UserImport, ImagePath = "/images/movies/titanic.jpg", DateAdded = DateTime.UtcNow },
+        new Movie { Id = 11, Name = "Gladiator", Description = "A betrayed Roman general seeks revenge.", AddedByUserId = DefaultUserId, Source = MovieSource.UserImport, ImagePath = "/images/movies/gladiator.jpg", DateAdded = DateTime.UtcNow },
+        new Movie { Id = 12, Name = "Toy Story", Description = "Toys come to life when humans aren't around.", AddedByUserId = DefaultUserId, Source = MovieSource.UserImport, ImagePath = "/images/movies/toystory.jpg", DateAdded = DateTime.UtcNow },
+        new Movie { Id = 13, Name = "Jurassic Park", Description = "A theme park suffers a major security breakdown with dinosaurs.", AddedByUserId = DefaultUserId, Source = MovieSource.UserImport, ImagePath = "/images/movies/jurassicpark.jpg", DateAdded = DateTime.UtcNow },
+        new Movie { Id = 14, Name = "The Shawshank Redemption", Description = "Two imprisoned men bond over the years.", AddedByUserId = DefaultUserId, Source = MovieSource.UserImport, ImagePath = "/images/movies/shawshank.jpg", DateAdded = DateTime.UtcNow },
+        new Movie { Id = 15, Name = "The Lion King", Description = "A lion cub's journey to reclaim his kingdom.", AddedByUserId = DefaultUserId, Source = MovieSource.UserImport, ImagePath = "/images/movies/lionking.jpg", DateAdded = DateTime.UtcNow },
+        new Movie { Id = 16, Name = "Back to the Future", Description = "A teenager travels back in time to help his parents.", AddedByUserId = DefaultUserId, Source = MovieSource.UserImport, ImagePath = "/images/movies/backtothefuture.jpg", DateAdded = DateTime.UtcNow },
+        new Movie { Id = 17, Name = "The Social Network", Description = "The story of Facebook's founding.", AddedByUserId = DefaultUserId, Source = MovieSource.UserImport, ImagePath = "/images/movies/socialnetwork.jpg", DateAdded = DateTime.UtcNow },
+        new Movie { Id = 18, Name = "Fight Club", Description = "An office worker forms an underground fight club.", AddedByUserId = DefaultUserId, Source = MovieSource.UserImport, ImagePath = "/images/movies/fightclub.jpg", DateAdded = DateTime.UtcNow },
+        new Movie { Id = 19, Name = "Coco", Description = "A boy journeys to the Land of the Dead to uncover family secrets.", AddedByUserId = DefaultUserId, Source = MovieSource.UserImport, ImagePath = "/images/movies/coco.jpg", DateAdded = DateTime.UtcNow },
+        new Movie { Id = 20, Name = "La La Land", Description = "A jazz musician and an aspiring actress fall in love.", AddedByUserId = DefaultUserId, Source = MovieSource.UserImport, ImagePath = "/images/movies/lalaland.jpg", DateAdded = DateTime.UtcNow }
     ];
 
     public static object[] GetMovieTagRelations() =>
