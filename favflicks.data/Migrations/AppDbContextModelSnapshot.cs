@@ -167,7 +167,7 @@ namespace favflicks.data.Migrations
 
                     b.HasIndex("TagsId");
 
-                    b.ToTable("MovieTag");
+                    b.ToTable("MovieTags", (string)null);
 
                     b.HasData(
                         new
@@ -395,6 +395,23 @@ namespace favflicks.data.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "00000000-0000-0000-0000-000000000000",
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "85c9684a-cb17-4a0a-96d6-2180592ea7d4",
+                            Email = "defaultuser@example.com",
+                            EmailConfirmed = true,
+                            LockoutEnabled = false,
+                            NormalizedEmail = "DEFAULTUSER@EXAMPLE.COM",
+                            NormalizedUserName = "TESTUSER",
+                            PhoneNumberConfirmed = false,
+                            SecurityStamp = "95f77958-62f1-403a-ac3b-28ac7324de5d",
+                            TwoFactorEnabled = false,
+                            UserName = "testuser"
+                        });
                 });
 
             modelBuilder.Entity("favflicks.data.Models.Comment", b =>
@@ -457,23 +474,88 @@ namespace favflicks.data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AddedByUserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("BackdropPath")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("CountryOfOrigin")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("DateAdded")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("Director")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ExternalId")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("ExternalUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Genre")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("ImagePath")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("ImdbUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Language")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<string>("ProductionCompany")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("ReleaseDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("RuntimeMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Stars")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Writers")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("YouTubeTrailerId")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("AddedByUserId");
 
                     b.ToTable("Movies");
 
@@ -481,162 +563,202 @@ namespace favflicks.data.Migrations
                         new
                         {
                             Id = 1,
+                            AddedByUserId = "00000000-0000-0000-0000-000000000000",
+                            DateAdded = new DateTime(2025, 8, 2, 15, 37, 20, 514, DateTimeKind.Utc).AddTicks(3191),
                             Description = "A thief uses dream-sharing technology to infiltrate minds.",
                             ImagePath = "/images/movies/inception.jpg",
                             Name = "Inception",
-                            UserId = "00000000-0000-0000-0000-000000000000"
+                            Source = "UserImport"
                         },
                         new
                         {
                             Id = 2,
+                            AddedByUserId = "00000000-0000-0000-0000-000000000000",
+                            DateAdded = new DateTime(2025, 8, 2, 15, 37, 20, 514, DateTimeKind.Utc).AddTicks(3195),
                             Description = "The aging patriarch of a crime dynasty transfers control to his son.",
                             ImagePath = "/images/movies/godfather.jpg",
                             Name = "The Godfather",
-                            UserId = "00000000-0000-0000-0000-000000000000"
+                            Source = "UserImport"
                         },
                         new
                         {
                             Id = 3,
+                            AddedByUserId = "00000000-0000-0000-0000-000000000000",
+                            DateAdded = new DateTime(2025, 8, 2, 15, 37, 20, 514, DateTimeKind.Utc).AddTicks(3197),
                             Description = "Two teens navigate friendship and parties before college.",
                             ImagePath = "/images/movies/superbad.jpg",
                             Name = "Superbad",
-                            UserId = "00000000-0000-0000-0000-000000000000"
+                            Source = "UserImport"
                         },
                         new
                         {
                             Id = 4,
+                            AddedByUserId = "00000000-0000-0000-0000-000000000000",
+                            DateAdded = new DateTime(2025, 8, 2, 15, 37, 20, 514, DateTimeKind.Utc).AddTicks(3199),
                             Description = "A hacker learns about the true nature of his reality.",
                             ImagePath = "/images/movies/matrix.jpg",
                             Name = "The Matrix",
-                            UserId = "00000000-0000-0000-0000-000000000000"
+                            Source = "UserImport"
                         },
                         new
                         {
                             Id = 5,
+                            AddedByUserId = "00000000-0000-0000-0000-000000000000",
+                            DateAdded = new DateTime(2025, 8, 2, 15, 37, 20, 514, DateTimeKind.Utc).AddTicks(3201),
                             Description = "A team travels through a wormhole in space to ensure humanity's survival.",
                             ImagePath = "/images/movies/interstellar.jpg",
                             Name = "Interstellar",
-                            UserId = "00000000-0000-0000-0000-000000000000"
+                            Source = "UserImport"
                         },
                         new
                         {
                             Id = 6,
+                            AddedByUserId = "00000000-0000-0000-0000-000000000000",
+                            DateAdded = new DateTime(2025, 8, 2, 15, 37, 20, 514, DateTimeKind.Utc).AddTicks(3269),
                             Description = "The lives of criminals intertwine in this nonlinear story.",
                             ImagePath = "/images/movies/pulpfiction.jpg",
                             Name = "Pulp Fiction",
-                            UserId = "00000000-0000-0000-0000-000000000000"
+                            Source = "UserImport"
                         },
                         new
                         {
                             Id = 7,
+                            AddedByUserId = "00000000-0000-0000-0000-000000000000",
+                            DateAdded = new DateTime(2025, 8, 2, 15, 37, 20, 514, DateTimeKind.Utc).AddTicks(3271),
                             Description = "Batman faces his greatest challenge in the form of the Joker.",
                             ImagePath = "/images/movies/darkknight.jpg",
                             Name = "The Dark Knight",
-                            UserId = "00000000-0000-0000-0000-000000000000"
+                            Source = "UserImport"
                         },
                         new
                         {
                             Id = 8,
+                            AddedByUserId = "00000000-0000-0000-0000-000000000000",
+                            DateAdded = new DateTime(2025, 8, 2, 15, 37, 20, 514, DateTimeKind.Utc).AddTicks(3273),
                             Description = "A man's simple outlook leads him through incredible life events.",
                             ImagePath = "/images/movies/forrestgump.jpg",
                             Name = "Forrest Gump",
-                            UserId = "00000000-0000-0000-0000-000000000000"
+                            Source = "UserImport"
                         },
                         new
                         {
                             Id = 9,
+                            AddedByUserId = "00000000-0000-0000-0000-000000000000",
+                            DateAdded = new DateTime(2025, 8, 2, 15, 37, 20, 514, DateTimeKind.Utc).AddTicks(3275),
                             Description = "Earth's mightiest heroes must unite to save the world.",
                             ImagePath = "/images/movies/avengers.jpg",
                             Name = "The Avengers",
-                            UserId = "00000000-0000-0000-0000-000000000000"
+                            Source = "UserImport"
                         },
                         new
                         {
                             Id = 10,
+                            AddedByUserId = "00000000-0000-0000-0000-000000000000",
+                            DateAdded = new DateTime(2025, 8, 2, 15, 37, 20, 514, DateTimeKind.Utc).AddTicks(3277),
                             Description = "A romance unfolds aboard the ill-fated RMS Titanic.",
                             ImagePath = "/images/movies/titanic.jpg",
                             Name = "Titanic",
-                            UserId = "00000000-0000-0000-0000-000000000000"
+                            Source = "UserImport"
                         },
                         new
                         {
                             Id = 11,
+                            AddedByUserId = "00000000-0000-0000-0000-000000000000",
+                            DateAdded = new DateTime(2025, 8, 2, 15, 37, 20, 514, DateTimeKind.Utc).AddTicks(3279),
                             Description = "A betrayed Roman general seeks revenge.",
                             ImagePath = "/images/movies/gladiator.jpg",
                             Name = "Gladiator",
-                            UserId = "00000000-0000-0000-0000-000000000000"
+                            Source = "UserImport"
                         },
                         new
                         {
                             Id = 12,
+                            AddedByUserId = "00000000-0000-0000-0000-000000000000",
+                            DateAdded = new DateTime(2025, 8, 2, 15, 37, 20, 514, DateTimeKind.Utc).AddTicks(3280),
                             Description = "Toys come to life when humans aren't around.",
                             ImagePath = "/images/movies/toystory.jpg",
                             Name = "Toy Story",
-                            UserId = "00000000-0000-0000-0000-000000000000"
+                            Source = "UserImport"
                         },
                         new
                         {
                             Id = 13,
+                            AddedByUserId = "00000000-0000-0000-0000-000000000000",
+                            DateAdded = new DateTime(2025, 8, 2, 15, 37, 20, 514, DateTimeKind.Utc).AddTicks(3282),
                             Description = "A theme park suffers a major security breakdown with dinosaurs.",
                             ImagePath = "/images/movies/jurassicpark.jpg",
                             Name = "Jurassic Park",
-                            UserId = "00000000-0000-0000-0000-000000000000"
+                            Source = "UserImport"
                         },
                         new
                         {
                             Id = 14,
+                            AddedByUserId = "00000000-0000-0000-0000-000000000000",
+                            DateAdded = new DateTime(2025, 8, 2, 15, 37, 20, 514, DateTimeKind.Utc).AddTicks(3284),
                             Description = "Two imprisoned men bond over the years.",
                             ImagePath = "/images/movies/shawshank.jpg",
                             Name = "The Shawshank Redemption",
-                            UserId = "00000000-0000-0000-0000-000000000000"
+                            Source = "UserImport"
                         },
                         new
                         {
                             Id = 15,
+                            AddedByUserId = "00000000-0000-0000-0000-000000000000",
+                            DateAdded = new DateTime(2025, 8, 2, 15, 37, 20, 514, DateTimeKind.Utc).AddTicks(3286),
                             Description = "A lion cub's journey to reclaim his kingdom.",
                             ImagePath = "/images/movies/lionking.jpg",
                             Name = "The Lion King",
-                            UserId = "00000000-0000-0000-0000-000000000000"
+                            Source = "UserImport"
                         },
                         new
                         {
                             Id = 16,
+                            AddedByUserId = "00000000-0000-0000-0000-000000000000",
+                            DateAdded = new DateTime(2025, 8, 2, 15, 37, 20, 514, DateTimeKind.Utc).AddTicks(3288),
                             Description = "A teenager travels back in time to help his parents.",
                             ImagePath = "/images/movies/backtothefuture.jpg",
                             Name = "Back to the Future",
-                            UserId = "00000000-0000-0000-0000-000000000000"
+                            Source = "UserImport"
                         },
                         new
                         {
                             Id = 17,
+                            AddedByUserId = "00000000-0000-0000-0000-000000000000",
+                            DateAdded = new DateTime(2025, 8, 2, 15, 37, 20, 514, DateTimeKind.Utc).AddTicks(3289),
                             Description = "The story of Facebook's founding.",
                             ImagePath = "/images/movies/socialnetwork.jpg",
                             Name = "The Social Network",
-                            UserId = "00000000-0000-0000-0000-000000000000"
+                            Source = "UserImport"
                         },
                         new
                         {
                             Id = 18,
+                            AddedByUserId = "00000000-0000-0000-0000-000000000000",
+                            DateAdded = new DateTime(2025, 8, 2, 15, 37, 20, 514, DateTimeKind.Utc).AddTicks(3291),
                             Description = "An office worker forms an underground fight club.",
                             ImagePath = "/images/movies/fightclub.jpg",
                             Name = "Fight Club",
-                            UserId = "00000000-0000-0000-0000-000000000000"
+                            Source = "UserImport"
                         },
                         new
                         {
                             Id = 19,
+                            AddedByUserId = "00000000-0000-0000-0000-000000000000",
+                            DateAdded = new DateTime(2025, 8, 2, 15, 37, 20, 514, DateTimeKind.Utc).AddTicks(3293),
                             Description = "A boy journeys to the Land of the Dead to uncover family secrets.",
                             ImagePath = "/images/movies/coco.jpg",
                             Name = "Coco",
-                            UserId = "00000000-0000-0000-0000-000000000000"
+                            Source = "UserImport"
                         },
                         new
                         {
                             Id = 20,
+                            AddedByUserId = "00000000-0000-0000-0000-000000000000",
+                            DateAdded = new DateTime(2025, 8, 2, 15, 37, 20, 514, DateTimeKind.Utc).AddTicks(3295),
                             Description = "A jazz musician and an aspiring actress fall in love.",
                             ImagePath = "/images/movies/lalaland.jpg",
                             Name = "La La Land",
-                            UserId = "00000000-0000-0000-0000-000000000000"
+                            Source = "UserImport"
                         });
                 });
 
@@ -703,6 +825,33 @@ namespace favflicks.data.Migrations
                             Id = 4,
                             Name = "Sci-Fi"
                         });
+                });
+
+            modelBuilder.Entity("favflicks.data.Models.WatchList", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("AddedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("MovieId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MovieId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("WatchList");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -811,11 +960,11 @@ namespace favflicks.data.Migrations
 
             modelBuilder.Entity("favflicks.data.Models.Movie", b =>
                 {
-                    b.HasOne("favflicks.data.Models.AppUser", "User")
+                    b.HasOne("favflicks.data.Models.AppUser", "AddedByUser")
                         .WithMany("Movies")
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("AddedByUserId");
 
-                    b.Navigation("User");
+                    b.Navigation("AddedByUser");
                 });
 
             modelBuilder.Entity("favflicks.data.Models.MovieRating", b =>
@@ -837,6 +986,25 @@ namespace favflicks.data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("favflicks.data.Models.WatchList", b =>
+                {
+                    b.HasOne("favflicks.data.Models.Movie", "Movie")
+                        .WithMany("Watchlists")
+                        .HasForeignKey("MovieId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("favflicks.data.Models.AppUser", "User")
+                        .WithMany("watchLists")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Movie");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("favflicks.data.Models.AppUser", b =>
                 {
                     b.Navigation("Comments");
@@ -846,6 +1014,8 @@ namespace favflicks.data.Migrations
                     b.Navigation("Movies");
 
                     b.Navigation("Ratings");
+
+                    b.Navigation("watchLists");
                 });
 
             modelBuilder.Entity("favflicks.data.Models.Movie", b =>
@@ -855,6 +1025,8 @@ namespace favflicks.data.Migrations
                     b.Navigation("Favorites");
 
                     b.Navigation("Ratings");
+
+                    b.Navigation("Watchlists");
                 });
 #pragma warning restore 612, 618
         }
