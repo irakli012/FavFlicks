@@ -6,7 +6,7 @@ namespace favflicks.services.Interfaces
     public interface IMovieService
     {
         // Local database operations
-        Task<IEnumerable<Movie>> GetMovieListAsync(string userId);
+        Task<IEnumerable<Movie>> GetLocalMoviesAsync(string userId);
         Task<Movie?> GetMovieByIdAsync(int id, string userId);
         Task<Movie> AddManualMovieAsync(Movie movie, string userId);
         Task UpdateAsync(Movie movie);
@@ -15,8 +15,10 @@ namespace favflicks.services.Interfaces
         // TMDB API operations
         Task<Movie> ImportFromTmdbAsync(int tmdbId, string userId);
         Task<IEnumerable<Movie>> SearchTmdbMoviesAsync(string query);
+        Task<IEnumerable<Movie>> GetPopularTmdbMoviesAsync();
 
-        // Fetch API operations
+        // Combined operations
+        Task<IEnumerable<Movie>> GetAllMoviesAsync(string userId, bool includeTmdb = false);
         Task<IEnumerable<Movie>> SearchAllSourcesAsync(string query);
         Task<Movie?> GetMovieFromAllSourcesAsync(int id, string source, string userId);
     }
