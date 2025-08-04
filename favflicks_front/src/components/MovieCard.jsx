@@ -11,8 +11,11 @@ function MovieCard({ movie, isLarge = false }) {
     ? movie.imagePath 
     : `https://localhost:7245${movie.imagePath}`;
 
+  // Get movie ID consistently regardless of casing
+  const movieId = movie.id ?? movie.Id;
+
   return (
-    <Link to={`/movie/${movie.id || movie.Id}`}
+    <Link to={`/movie/${movieId}`} // Use the consistently accessed ID
       className={outerDivClasses} style={{ textDecoration: 'none' }}>
       <div
         className={imageDivClasses}

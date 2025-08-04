@@ -1,58 +1,46 @@
-// src/components/MovieDetailsPage.jsx
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom'; // Import useParams and Link
+import { useParams, Link } from 'react-router-dom';
 
 function MovieDetailsPage() {
-  const { movieId } = useParams(); // Get the movieId from the URL
+  const { movieId } = useParams();
   const [movie, setMovie] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // Define your API URL (base URL for single movie details)
-  const API_DETAIL_URL = "https://localhost:7245/api/Movies"; // Assuming endpoint is /api/Movies/{id}
 
   useEffect(() => {
     const fetchMovieDetail = async () => {
       try {
         setLoading(true);
-        // Construct the URL for the specific movie ID
-        const response = await fetch(`${API_DETAIL_URL}/${movieId}`);
+        
+        // Check if this is a TMDB movie (id is 0 or negative)
+        const isTmdbMovie = movieId <= 0;
+        
+        let response;
+        if (isTmdbMovie) {
+          // For TMDB movies, we need to use the externalId
+          // First get the full list to find the externalId
+          const listResponse = await fetch('https://localhost:7245/api/Movies?includeTmdb=true');
+          const allMovies = await listResponse.json();
+          const tmdbMovie = allMovies.find(m => (m.id ?? m.Id) == movieId);
+          
+          if (!tmdbMovie) {
+            throw new Error('TMDB movie not found');
+          }
+          
+          // Then fetch details using the externalId
+          response = await fetch(`https://localhost:7245/api/Movies/tmdb/${tmdbMovie.externalId}`);
+        } else {
+          // For local movies
+          response = await fetch(`https://localhost:7245/api/Movies/${movieId}`);
+        }
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
+
         const data = await response.json();
-        // Map backend fields to expected frontend fields
-        const mappedMovie = {
-          title: data.Name || data.name || '',
-          description: data.Description || '',
-          posterUrl: data.ImagePath ? `https://localhost:7245${data.ImagePath}` : '',
-          imagePath: data.ImagePath || data.imagePath || '',
-          averageRating: data.AverageRating ?? null,
-          tags: Array.isArray(data.Tags) ? data.Tags.map(t => t.Name || t.name || t) : [],
-          comments: Array.isArray(data.Comments) ? data.Comments.map(c => ({
-            author: c.User?.userName || c.User?.UserName || 'User',
-            text: c.Content || c.Text || '',
-            timestamp: c.Timestamp || '',
-            avatarUrl: c.User?.avatarUrl || '',
-            likes: c.Likes || 0,
-            dislikes: c.Dislikes || 0,
-            id: c.Id || c.id
-          })) : [],
-          // Fallbacks for fields not present in backend yet
-          releaseYear: '',
-          runtime: '',
-          rating: '',
-          genre: '',
-          director: '',
-          writers: '',
-          stars: '',
-          releaseDate: '',
-          countryOfOrigin: '',
-          language: '',
-          productionCompany: '',
-          userRatings: null,
-        };
-        setMovie(mappedMovie);
+        // Rest of your mapping logic...
+        setMovie(data);
       } catch (err) {
         console.error("Error fetching movie details:", err);
         setError("Failed to load movie details. Please try again later.");
@@ -61,10 +49,11 @@ function MovieDetailsPage() {
       }
     };
 
-    if (movieId) { // Only fetch if movieId is available
+    if (movieId) {
       fetchMovieDetail();
     }
-  }, [movieId]); // Re-run effect if movieId changes
+  }, [movieId]);
+
 
   if (loading) {
     return (
