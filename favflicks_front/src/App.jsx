@@ -1,16 +1,18 @@
 // App.jsx
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'; // Import Router, Routes, Route
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import SearchBar from './components/SearchBar';
 import HighestRatedSlider from './components/HighestRatedSlider';
 import PopularMoviesSection from './components/PopularMoviesSection';
 import MovieDetailsPage from './components/MovieDetailsPage.jsx';
+import ToggleSwitch from './components/ToggleSwitch'; // We'll create this new component
 
 function App() {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showTmdbMovies, setShowTmdbMovies] = useState(true); // New state for toggle
 
   // Constants for pagination and display
   const POPULAR_MOVIES_PER_PAGE = 10;
@@ -25,7 +27,11 @@ function App() {
   useEffect(() => {
     const fetchMovies = async () => {
       try {
-        const response = await fetch(API_URL); // Fetch all movies for home sections
+        const url = showTmdbMovies 
+          ? `${API_URL}?includeTmdb=true` 
+          : API_URL;
+          
+        const response = await fetch(url);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -42,7 +48,7 @@ function App() {
     };
 
     fetchMovies();
-  }, []);
+  }, [showTmdbMovies]); // Add showTmdbMovies to dependency array
 
   // Popular Movies Pagination Logic
   const totalPopularPages = Math.ceil(movies.length / POPULAR_MOVIES_PER_PAGE);
@@ -57,24 +63,30 @@ function App() {
   };
 
   return (
-    <Router> {/* Wrap your entire app with Router */}
+    <Router>
       <div
         className="relative flex size-full min-h-screen flex-col bg-[#181111] dark group/design-root overflow-x-hidden"
         style={{ fontFamily: '"Plus Jakarta Sans", "Noto Sans", sans-serif' }}
       >
         <div className="layout-container flex h-full grow flex-col">
-          <Header /> {/* Render Header component, it will be visible on all routes */}
+          <Header />
+          
+          {/* Add the toggle switch near the header */}
+          <div className="flex justify-end px-20 py-2">
+            <ToggleSwitch 
+              isOn={showTmdbMovies}
+              handleToggle={() => setShowTmdbMovies(!showTmdbMovies)}
+              label="Show TMDB Movies"
+            />
+          </div>
 
-          {/* Define your routes here */}
           <Routes>
             <Route
               path="/"
               element={
-                // This is the main content for your homepage
                 <div className="px-20 flex flex-1 justify-center py-5">
                   <div className="layout-content-container flex flex-col w-full flex-1">
                     <SearchBar />
-                    {/* Make sure HighestRatedSlider and PopularMoviesSection use your MovieCard component */}
                     <HighestRatedSlider movies={movies} loading={loading} error={error} />
                     <PopularMoviesSection
                       movies={movies}
@@ -90,8 +102,6 @@ function App() {
                 </div>
               }
             />
-            {/* Route for Movie Details Page */}
-            {/* The :movieId part captures the ID from the URL */}
             <Route path="/movie/:movieId" element={<MovieDetailsPage />} />
           </Routes>
         </div>
