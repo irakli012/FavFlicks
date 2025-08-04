@@ -12,17 +12,34 @@ namespace favflicks.Controllers
     public class MoviesController(IMovieService movieService, ILogger<MoviesController> logger) : ControllerBase
     {
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Movie>>> GetAllMovies()
+        public async Task<ActionResult<IEnumerable<Movie>>> GetAllMovies(
+        [FromQuery] bool includeTmdb = false)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
-                var movies = await movieService.GetMovieListAsync(userId);
+                var movies = await movieService.GetAllMoviesAsync(userId, includeTmdb);
                 return Ok(movies);
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error getting all movies");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("popular")]
+        public async Task<ActionResult<IEnumerable<Movie>>> GetPopularMovies()
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+                var movies = await movieService.GetPopularTmdbMoviesAsync();
+                return Ok(movies);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error getting popular movies");
                 return StatusCode(500, "Internal server error");
             }
         }
