@@ -268,46 +268,73 @@ public class MovieService : IMovieService
 
         try
         {
-            var movieResponse = await httpClient.GetAsync(
-                $"movie/{tmdbId}?api_key={_tmdbSettings.ApiKey}&append_to_response=videos");
+            _logger.LogInformation("Starting TMDB import for ID: {TmdbId}", tmdbId);
 
-            movieResponse.EnsureSuccessStatusCode();
+            var movieResponse = await _retryPolicy.ExecuteAsync(() =>
+                httpClient.GetAsync($"movie/{tmdbId}?api_key={_tmdbSettings.ApiKey}&append_to_response=videos,credits"));
+
+            if (!movieResponse.IsSuccessStatusCode)
+            {
+                var errorContent = await movieResponse.Content.ReadAsStringAsync();
+                _logger.LogError("TMDB API error: {StatusCode} - {Content}",
+                    movieResponse.StatusCode, errorContent);
+                throw new Exception($"TMDB API error: {movieResponse.StatusCode}");
+            }
 
             var content = await movieResponse.Content.ReadAsStringAsync();
-            var tmdbMovie = JsonSerializer.Deserialize<TmdbMovieDetails>(content)
-                ?? throw new Exception("TMDB movie data is null");
+            _logger.LogDebug("TMDB API response: {Content}", content);
 
-            // Process trailer
+            var tmdbMovie = JsonSerializer.Deserialize<TmdbMovieDetails>(content)
+                ?? throw new Exception("Failed to deserialize TMDB movie data");
+
             var trailer = tmdbMovie.Videos?.Results?
                 .FirstOrDefault(v => v.Site == "YouTube" && v.Type == "Trailer");
+
+            var genres = tmdbMovie.Genres?.Select(g => g.Name)?.ToList();
+
+            var stars = tmdbMovie.Credits?.Cast?
+                .Take(5)
+                .Select(c => c.Name)?.ToList();
+
+            var director = tmdbMovie.Credits?.Crew?
+                .FirstOrDefault(c => c.Job == "Director")?.Name;
+
+            var writers = tmdbMovie.Credits?.Crew?
+                .Where(c => c.Job == "Screenplay" || c.Job == "Writer")
+                .Select(c => c.Name)?.ToList();
 
             var movie = new Movie
             {
                 Source = MovieSource.TMDB,
                 ExternalId = tmdbId.ToString(),
-                ExternalUrl = tmdbMovie.Homepage ?? $"https://www.themoviedb.org/movie/{tmdbId}",
-                ImdbUrl = !string.IsNullOrEmpty(tmdbMovie.ImdbId)
-                    ? $"https://www.imdb.com/title/{tmdbMovie.ImdbId}/"
-                    : null,
-                Name = tmdbMovie.Title,
-                Description = tmdbMovie.Overview,
-                YouTubeTrailerId = trailer?.Key,
+                Name = tmdbMovie.Title ?? "Untitled Movie",
+                Description = tmdbMovie.Overview ?? "No description available",
                 ImagePath = tmdbMovie.PosterPath != null
                     ? $"{_tmdbSettings.ImageBaseUrl}w500{tmdbMovie.PosterPath}"
                     : null,
                 BackdropPath = tmdbMovie.BackdropPath != null
                     ? $"{_tmdbSettings.ImageBaseUrl}original{tmdbMovie.BackdropPath}"
                     : null,
+                YouTubeTrailerId = trailer?.Key,
+                ExternalUrl = tmdbMovie.Homepage ?? $"https://www.themoviedb.org/movie/{tmdbId}",
+                ImdbUrl = !string.IsNullOrEmpty(tmdbMovie.ImdbId)
+                    ? $"https://www.imdb.com/title/{tmdbMovie.ImdbId}/"
+                    : null,
                 ReleaseDate = tmdbMovie.ReleaseDate,
                 RuntimeMinutes = tmdbMovie.Runtime,
-                Director = tmdbMovie.Credits?.Crew?
-                    .FirstOrDefault(c => c.Job == "Director")?.Name,
+                Director = director,
+                Writers = writers != null ? string.Join(", ", writers) : null,
+                Stars = stars != null ? string.Join(", ", stars) : null,
+                Genre = genres != null ? string.Join(", ", genres) : null,
                 AddedByUserId = userId,
                 DateAdded = DateTime.UtcNow
             };
 
             _context.Movies.Add(movie);
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Successfully imported TMDB movie: {MovieName} (ID: {TmdbId})",
+                movie.Name, tmdbId);
 
             return movie;
         }
