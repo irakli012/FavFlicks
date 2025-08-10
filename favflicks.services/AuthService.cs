@@ -25,7 +25,7 @@ namespace favflicks.services
             {
                 var errorMessage = string.Join("; ", result.Errors.Select(e => e.Description));
                 Console.WriteLine("Registration failed: " + errorMessage);
-                return null;
+                return null; 
             }
 
             // Add default role
@@ -37,13 +37,14 @@ namespace favflicks.services
             return GenerateJwtToken(user);
         }
 
-        public async Task<string?> LoginAsync(LoginDto dto)
+        public async Task<(string? Token, AppUser User)> LoginAsync(LoginDto dto)
         {
             var user = await userManager.FindByNameAsync(dto.UserName);
             if (user == null || !await userManager.CheckPasswordAsync(user, dto.Password))
-                return null;
+                return (null, null);
 
-            return GenerateJwtToken(user);
+            var token = GenerateJwtToken(user);
+            return (token, user);
         }
 
         private string GenerateJwtToken(AppUser user)
