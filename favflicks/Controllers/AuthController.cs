@@ -17,7 +17,7 @@ namespace favflicks.Controllers
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             return Ok($"You're authorized as user {userId}");
-        }
+        }   
 
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterDto dto)
@@ -28,11 +28,20 @@ namespace favflicks.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login(LoginDto dto)
+        public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
-            var token = await authService.LoginAsync(dto);
+            var (token, user) = await authService.LoginAsync(dto);
             if (token == null) return Unauthorized();
-            return Ok(new { token });
+
+            return Ok(new
+            {
+                token,
+                user = new
+                {
+                    userName = user.UserName,
+                    email = user.Email
+                }
+            });
         }
 
     }
