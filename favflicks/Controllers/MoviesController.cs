@@ -85,17 +85,14 @@ namespace favflicks.Controllers
         {
             try
             {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(userId))
-                    return Unauthorized();
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "system";
 
                 var movie = await movieService.ImportFromTmdbAsync(tmdbId, userId);
-                return CreatedAtAction(nameof(GetMovieById), new { id = movie.Id }, movie);
+                return Ok(movie);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error importing from TMDB");
-                return BadRequest(ex.Message);
+                return BadRequest($"Error importing movie: {ex.Message}");
             }
         }
 
