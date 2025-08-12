@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import MovieCard from './MovieCard'; // Import MovieCard
+import MovieCard from '../components/MovieCard'; // Import MovieCard
 
 // HighestRatedSlider component for the scrollable section of large movie cards
 function HighestRatedSlider({ movies, loading, error }) {

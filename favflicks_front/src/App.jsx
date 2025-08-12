@@ -1,14 +1,17 @@
-// App.jsx
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import SearchBar from './components/SearchBar';
 import HighestRatedSlider from './components/HighestRatedSlider';
 import PopularMoviesSection from './components/PopularMoviesSection';
-import MovieDetailsPage from './components/MovieDetailsPage.jsx';
-import ToggleSwitch from './components/ToggleSwitch'; // We'll create this new component
+import MovieDetailsPage from './components/MovieDetailsPage';
+import ToggleSwitch from './components/ToggleSwitch';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import './index.css';
 
 function App() {
+  console.log("App rendered");
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -64,14 +67,12 @@ function App() {
 
   return (
     <Router>
-      <div
-        className="relative flex size-full min-h-screen flex-col bg-[#181111] dark group/design-root overflow-x-hidden"
-        style={{ fontFamily: '"Plus Jakarta Sans", "Noto Sans", sans-serif' }}
-      >
+      <div className="relative flex size-full min-h-screen flex-col bg-[#181111] dark group/design-root overflow-x-hidden"
+        style={{ fontFamily: '"Plus Jakarta Sans", "Noto Sans", sans-serif' }}>
+        <Header />
+        
         <div className="layout-container flex h-full grow flex-col">
-          <Header />
-          
-          {/* Add the toggle switch near the header */}
+          {/* Toggle switch */}
           <div className="flex justify-end px-20 py-2">
             <ToggleSwitch 
               isOn={showTmdbMovies}
@@ -81,28 +82,27 @@ function App() {
           </div>
 
           <Routes>
-            <Route
-              path="/"
-              element={
-                <div className="px-20 flex flex-1 justify-center py-5">
-                  <div className="layout-content-container flex flex-col w-full flex-1">
-                    <SearchBar />
-                    <HighestRatedSlider movies={movies} loading={loading} error={error} />
-                    <PopularMoviesSection
-                      movies={movies}
-                      loading={loading}
-                      error={error}
-                      popularCurrentPage={popularCurrentPage}
-                      totalPopularPages={totalPopularPages}
-                      paginatePopular={paginatePopular}
-                      currentPopularMovies={currentPopularMovies}
-                      MOVIES_PER_ROW={MOVIES_PER_ROW}
-                    />
-                  </div>
+            <Route path="/" element={
+              <div className="px-20 flex flex-1 justify-center py-5">
+                <div className="layout-content-container flex flex-col w-full flex-1">
+                  <SearchBar />
+                  <HighestRatedSlider movies={movies} loading={loading} error={error} />
+                  <PopularMoviesSection
+                    movies={movies}
+                    loading={loading}
+                    error={error}
+                    popularCurrentPage={popularCurrentPage}
+                    totalPopularPages={totalPopularPages}
+                    paginatePopular={paginatePopular}
+                    currentPopularMovies={currentPopularMovies}
+                    MOVIES_PER_ROW={MOVIES_PER_ROW}
+                  />
                 </div>
-              }
-            />
+              </div>
+            } />
             <Route path="/movie/:movieId" element={<MovieDetailsPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
           </Routes>
         </div>
       </div>
