@@ -9,6 +9,7 @@ import ToggleSwitch from './components/ToggleSwitch';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import './index.css';
+import Snowfall from 'react-snowfall'
 
 function App() {
   console.log("App rendered");
@@ -65,24 +66,41 @@ function App() {
     }
   };
 
-  return (
-    <Router>
-      <div className="relative flex size-full min-h-screen flex-col bg-[#181111] dark group/design-root overflow-x-hidden"
-        style={{ fontFamily: '"Plus Jakarta Sans", "Noto Sans", sans-serif' }}>
-        <Header />
-        
-        <div className="layout-container flex h-full grow flex-col">
-          {/* Toggle switch */}
-          <div className="flex justify-end px-20 py-2">
-            <ToggleSwitch 
-              isOn={showTmdbMovies}
-              handleToggle={() => setShowTmdbMovies(!showTmdbMovies)}
-              label="Show TMDB Movies"
-            />
-          </div>
+return (
+  <Router>
+    <div
+      className="relative flex size-full min-h-screen flex-col bg-[#181111] dark group/design-root overflow-x-hidden"
+      style={{ fontFamily: '"Plus Jakarta Sans", "Noto Sans", sans-serif' }}
+    >
+      {/* ❄️ Snowfall overlay */}
+      <Snowfall
+        snowflakeCount={120}
+        color="white"
+        style={{
+          position: 'fixed',
+          width: '100vw',
+          height: '100vh',
+          zIndex: 50,
+          pointerEvents: 'none', // 👈 important
+        }}
+      />
 
-          <Routes>
-            <Route path="/" element={
+      <Header />
+
+      <div className="layout-container flex h-full grow flex-col">
+        {/* Toggle switch */}
+        <div className="flex justify-end px-20 py-2">
+          <ToggleSwitch
+            isOn={showTmdbMovies}
+            handleToggle={() => setShowTmdbMovies(!showTmdbMovies)}
+            label="Show TMDB Movies"
+          />
+        </div>
+
+        <Routes>
+          <Route
+            path="/"
+            element={
               <div className="px-20 flex flex-1 justify-center py-5">
                 <div className="layout-content-container flex flex-col w-full flex-1">
                   <SearchBar />
@@ -99,15 +117,17 @@ function App() {
                   />
                 </div>
               </div>
-            } />
-            <Route path="/movie/:movieId" element={<MovieDetailsPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-          </Routes>
-        </div>
+            }
+          />
+          <Route path="/movie/:movieId" element={<MovieDetailsPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+        </Routes>
       </div>
-    </Router>
-  );
+    </div>
+  </Router>
+);
+
 }
 
 export default App;
