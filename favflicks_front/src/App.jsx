@@ -8,6 +8,7 @@ import MovieDetailsPage from './components/MovieDetailsPage';
 import ToggleSwitch from './components/ToggleSwitch';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import FeedPage from './pages/FeedPage';
 import './index.css';
 import Snowfall from 'react-snowfall'
 
@@ -120,6 +121,7 @@ return (
             }
           />
           <Route path="/movie/:movieId" element={<MovieDetailsPage />} />
+          <Route path="/feed" element={<FeedPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
         </Routes>
