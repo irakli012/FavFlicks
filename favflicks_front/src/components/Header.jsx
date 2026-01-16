@@ -31,7 +31,7 @@ function Header() {
           <Link to="/" className="text-white text-sm font-medium leading-normal">Home</Link>
           <Link to="/movies" className="text-white text-sm font-medium leading-normal">Movies</Link>
           <Link to="/tv-shows" className="text-white text-sm font-medium leading-normal">TV Shows</Link>
-          <Link to="/people" className="text-white text-sm font-normal leading-normal">People</Link>
+          <Link to="/feed" className="text-white text-sm font-normal leading-normal">Feed</Link>
         </div>
       </div>
       
