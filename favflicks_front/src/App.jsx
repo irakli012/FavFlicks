@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Header from './components/Header';
 import SearchBar from './components/SearchBar';
 import HighestRatedSlider from './components/HighestRatedSlider';
@@ -67,8 +67,40 @@ function App() {
     }
   };
 
-return (
-  <Router>
+  return (
+    <Router>
+      <AppContent 
+        movies={movies}
+        loading={loading}
+        error={error}
+        showTmdbMovies={showTmdbMovies}
+        setShowTmdbMovies={setShowTmdbMovies}
+        popularCurrentPage={popularCurrentPage}
+        totalPopularPages={totalPopularPages}
+        paginatePopular={paginatePopular}
+        currentPopularMovies={currentPopularMovies}
+        MOVIES_PER_ROW={MOVIES_PER_ROW}
+      />
+    </Router>
+  );
+}
+
+function AppContent({ 
+  movies, 
+  loading, 
+  error, 
+  showTmdbMovies, 
+  setShowTmdbMovies, 
+  popularCurrentPage, 
+  totalPopularPages, 
+  paginatePopular, 
+  currentPopularMovies, 
+  MOVIES_PER_ROW 
+}) {
+  const location = useLocation();
+  const showToggle = !['profile', 'feed'].some(path => location.pathname.includes(path));
+
+  return (
     <div
       className="relative flex size-full min-h-screen flex-col bg-[#181111] dark group/design-root overflow-x-hidden"
       style={{ fontFamily: '"Plus Jakarta Sans", "Noto Sans", sans-serif' }}
@@ -89,14 +121,16 @@ return (
       <Header />
 
       <div className="layout-container flex h-full grow flex-col">
-        {/* Toggle switch */}
-        <div className="flex justify-end px-20 py-2">
-          <ToggleSwitch
-            isOn={showTmdbMovies}
-            handleToggle={() => setShowTmdbMovies(!showTmdbMovies)}
-            label="Show TMDB Movies"
-          />
-        </div>
+        {/* Toggle switch - only show on home and movies pages */}
+        {showToggle && (
+          <div className="flex justify-end px-20 py-2">
+            <ToggleSwitch
+              isOn={showTmdbMovies}
+              handleToggle={() => setShowTmdbMovies(!showTmdbMovies)}
+              label="Show TMDB Movies"
+            />
+          </div>
+        )}
 
         <Routes>
           <Route
@@ -124,12 +158,11 @@ return (
           <Route path="/feed" element={<FeedPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
         </Routes>
       </div>
     </div>
-  </Router>
-);
-
+  );
 }
 
 export default App;

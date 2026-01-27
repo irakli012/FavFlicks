@@ -1,5 +1,4 @@
 ﻿using favflicks.data.Enums;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -57,7 +56,6 @@ namespace favflicks.data.Models
         public string? Genre { get; set; }
 
         // User Management
-        [BindNever]
         public string? AddedByUserId { get; set; }
         public AppUser? AddedByUser { get; set; }
         public DateTime DateAdded { get; set; } = DateTime.UtcNow;
@@ -77,4 +75,3 @@ namespace favflicks.data.Models
                         : null;
     }
 }
-        
