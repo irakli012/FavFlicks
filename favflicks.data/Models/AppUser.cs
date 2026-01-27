@@ -15,5 +15,8 @@ namespace favflicks.data.Models
         public ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
         public ICollection<Comment> Comments { get; set; } = new List<Comment>();
         public ICollection<WatchList> watchLists { get; set; } = new List<WatchList>();
+        public UserProfile? Profile { get; set; }
+        public ICollection<Review> Reviews { get; set; } = new List<Review>();
+        public ICollection<UserList> Lists { get; set; } = new List<UserList>();
     }
 }
