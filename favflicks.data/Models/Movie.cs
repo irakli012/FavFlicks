@@ -67,6 +67,8 @@ namespace favflicks.data.Models
         public ICollection<Comment> Comments { get; set; } = new List<Comment>();
         public ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
         public ICollection<WatchList> Watchlists { get; set; } = new List<WatchList>();
+        public ICollection<Review> Reviews { get; set; } = new List<Review>();
+        public ICollection<ListMovie> ListMovies { get; set; } = new List<ListMovie>();
 
         [NotMapped]
         public string TrailerUrl =>
