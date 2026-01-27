@@ -32,6 +32,9 @@ function Header() {
           <Link to="/movies" className="text-white text-sm font-medium leading-normal">Movies</Link>
           <Link to="/tv-shows" className="text-white text-sm font-medium leading-normal">TV Shows</Link>
           <Link to="/feed" className="text-white text-sm font-normal leading-normal">Feed</Link>
+          {isAuthenticated && (
+            <Link to="/profile" className="text-white text-sm font-medium leading-normal">Profile</Link>
+          )}
         </div>
       </div>
       
