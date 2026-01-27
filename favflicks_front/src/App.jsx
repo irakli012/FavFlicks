@@ -8,6 +8,7 @@ import MovieDetailsPage from './components/MovieDetailsPage';
 import ToggleSwitch from './components/ToggleSwitch';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import ProfilePage from './pages/ProfilePage';
 import FeedPage from './pages/FeedPage';
 import './index.css';
 import Snowfall from 'react-snowfall'
