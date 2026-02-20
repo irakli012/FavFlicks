@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace favflicks.data.Models
 {
@@ -17,10 +18,12 @@ namespace favflicks.data.Models
 
         [Required]
         public int MovieId { get; set; }
+        [JsonIgnore]
         public Movie? Movie { get; set; }
 
         [Required]
         public string UserId { get; set; } = null!;
+        [JsonIgnore]
         public AppUser? User { get; set; }
 
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;

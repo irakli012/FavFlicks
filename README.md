@@ -1,93 +1,191 @@
 # FavFlicks
 
+A full-stack movie social platform where users can discover movies, rate them, leave comments, manage favorites, and engage with a community feed. Powered by [TMDB](https://www.themoviedb.org/) for rich movie data.
 
+## Tech Stack
 
-## Getting started
+| Layer | Technology |
+|-------|------------|
+| **Frontend** | React 19, Vite 7, Tailwind CSS, React Router v7, Axios |
+| **Backend** | ASP.NET Core (.NET 10), Entity Framework Core, SQL Server |
+| **Auth** | ASP.NET Identity + JWT Bearer tokens |
+| **External API** | TMDB (The Movie Database) |
+| **API Docs** | Scalar (OpenAPI) |
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## Features
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+- **Movie Discovery** — Browse popular movies, search across local database & TMDB, import movies from TMDB
+- **User Authentication** — Register/login with JWT-based auth, role-based access control (User & Admin)
+- **Ratings** — Rate movies on a star scale; view aggregate scores and rating distributions
+- **Comments** — Add, edit, and delete comments on movies with like/dislike interactions
+- **Favorites** — Save movies to your personal favorites list
+- **Tags** — Admin-managed tag system for categorizing movies
+- **Watch Later** — Save movies to watch later *(in progress)*
+- **Community Feed** — Social feed with posts about movies *(in progress)*
+- **Profile** — User profile with stats, watchlist, favorites, and reviews
+- **Highest Rated Slider** — Horizontal carousel of top-rated movies on the home page
+- **TMDB Enrichment** — Movie details include cast, crew, trailers, genres, runtime, and external links
 
-## Add your files
-
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+## Project Structure
 
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/irakli012/FavFlicks.git
-git branch -M main
-git push -uf origin main
+FavFlicks/
+├── favflicks/                  # ASP.NET Core Web API
+│   ├── Controllers/            # API endpoints
+│   ├── Properties/             # Launch settings
+│   ├── wwwroot/                # Static files (movie images)
+│   ├── Program.cs              # App configuration & middleware
+│   └── appsettings.json        # Config (DB, JWT, TMDB, CORS)
+│
+├── favflicks.services/         # Business logic layer
+│   ├── Interfaces/             # Service contracts
+│   └── *.cs                    # Service implementations
+│
+├── favflicks_front/            # React SPA
+│   ├── src/
+│   │   ├── components/         # Reusable UI components
+│   │   ├── pages/              # Route-level page components
+│   │   ├── contexts/           # React context (AuthContext)
+│   │   ├── services/           # API service helpers
+│   │   └── utils/              # Utilities (API client, fetchWithAuth)
+│   └── public/                 # Static assets
+│
+└── favflicks.sln               # Solution file
 ```
 
-## Integrate with your tools
+## Getting Started
 
-- [ ] [Set up project integrations](https://gitlab.com/irakli012/FavFlicks/-/settings/integrations)
+### Prerequisites
 
-## Collaborate with your team
+- [.NET 10 SDK](https://dotnet.microsoft.com/download)
+- [Node.js](https://nodejs.org/) (v18+)
+- [SQL Server](https://www.microsoft.com/sql-server) (LocalDB or full instance)
+- A [TMDB API key](https://www.themoviedb.org/settings/api)
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+### Backend Setup
 
-## Test and Deploy
+1. **Clone the repository**
+   ```bash
+   git clone https://gitlab.com/irakli012/FavFlicks.git
+   cd FavFlicks
+   ```
 
-Use the built-in continuous integration in GitLab.
+2. **Configure the API** — Update `favflicks/appsettings.json`:
+   ```json
+   {
+     "ConnectionStrings": {
+       "DefaultConnection": "YOUR_SQL_SERVER_CONNECTION_STRING"
+     },
+     "Jwt": {
+       "Key": "YOUR_32_CHAR_SECRET_KEY",
+       "Issuer": "favflicks",
+       "Audience": "favflicks_users"
+     },
+     "TMDB": {
+       "ApiKey": "YOUR_TMDB_API_KEY",
+       "BaseUrl": "https://api.themoviedb.org/3/",
+       "ImageBaseUrl": "https://image.tmdb.org/t/p/"
+     }
+   }
+   ```
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+3. **Apply database migrations & run**
+   ```bash
+   cd favflicks
+   dotnet ef database update
+   dotnet run
+   ```
+   The API will start at `https://localhost:7076` (or the port in `launchSettings.json`).
 
-***
+> An admin account is automatically seeded on first run: `admin@favflicks.com` / `Admin123`
 
-# Editing this README
+### Frontend Setup
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+1. **Install dependencies**
+   ```bash
+   cd favflicks_front
+   npm install
+   ```
 
-## Suggestions for a good README
+2. **Start the dev server**
+   ```bash
+   npm run dev
+   ```
+   The app will be available at `http://localhost:5173`.
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+## API Endpoints
 
-## Name
-Choose a self-explaining name for your project.
+### Auth — `/api/Auth`
+| Method | Route | Auth | Description |
+|--------|-------|:----:|-------------|
+| POST | `/register` | No | Register a new user |
+| POST | `/login` | No | Login and receive JWT |
+| GET | `/test-auth` | Yes | Verify token validity |
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+### Movies — `/api/Movies`
+| Method | Route | Auth | Description |
+|--------|-------|:----:|-------------|
+| GET | `/` | No | List all movies |
+| GET | `/popular` | No | Get popular movies from TMDB |
+| GET | `/search?query=` | No | Search local DB + TMDB |
+| GET | `/{id}` | No | Get movie by ID |
+| GET | `/tmdb/{tmdbId}` | No | Import/get movie from TMDB |
+| POST | `/` | Yes | Create a user-imported movie |
+| PUT | `/{id}` | Yes | Update movie (owner/admin) |
+| DELETE | `/{id}` | Yes | Delete movie (owner/admin) |
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+### Comments — `/api/Comments`
+| Method | Route | Auth | Description |
+|--------|-------|:----:|-------------|
+| GET | `/?movie=` | No | Get comments for a movie |
+| GET | `/{id}` | No | Get a single comment |
+| POST | `/` | Yes | Add a comment |
+| PUT | `/{id}` | Yes | Update comment (owner/admin) |
+| DELETE | `/{id}` | Yes | Delete comment (owner/admin) |
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+### Favorites — `/api/Favorites`
+| Method | Route | Auth | Description |
+|--------|-------|:----:|-------------|
+| GET | `/user` | Yes | Get current user's favorites |
+| GET | `/{id}` | Yes | Get a single favorite |
+| POST | `/` | Yes | Add a movie to favorites |
+| DELETE | `/{id}` | Yes | Remove from favorites |
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+### Ratings — `/api/Ratings`
+| Method | Route | Auth | Description |
+|--------|-------|:----:|-------------|
+| GET | `/movie/{movieId}` | No | Get all ratings for a movie |
+| GET | `/movie/{movieId}/user` | Yes | Get current user's rating |
+| POST | `/` | Yes | Add or update a rating |
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+### Tags — `/api/Tag`
+| Method | Route | Auth | Description |
+|--------|-------|:----:|-------------|
+| GET | `/` | No | List all tags |
+| GET | `/{id}` | No | Get tag by ID |
+| POST | `/` | Admin | Create a tag |
+| PUT | `/{id}` | Admin | Update a tag |
+| DELETE | `/{id}` | Admin | Delete a tag |
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+## Frontend Routes
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+| Route | Page | Description |
+|-------|------|-------------|
+| `/` | Home | Search, highest-rated slider, popular movies grid |
+| `/movie/:movieId` | Movie Details | Full movie info, cast, ratings, comments, trailers |
+| `/feed` | Feed | Community social feed |
+| `/login` | Login | User login form |
+| `/register` | Register | User registration form |
+| `/profile` | Profile | User profile with watchlist, favorites, reviews |
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+## API Documentation
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+When running in development mode, interactive API docs are available via Scalar at:
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+```
+https://localhost:7076/scalar
+```
 
 ## License
-For open source projects, say how it is licensed.
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+This project is for personal/educational use.

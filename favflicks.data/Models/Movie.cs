@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace favflicks.data.Models
@@ -57,6 +58,7 @@ namespace favflicks.data.Models
 
         // User Management
         public string? AddedByUserId { get; set; }
+        [JsonIgnore]
         public AppUser? AddedByUser { get; set; }
         public DateTime DateAdded { get; set; } = DateTime.UtcNow;
 
