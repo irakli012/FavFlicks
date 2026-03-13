@@ -94,7 +94,9 @@ builder.Services.AddCors(options =>
                           policy.WithOrigins(
                                 "http://localhost:5173",
                                 "http://localhost:3000",
-                                "https://*.vercel.app"
+                                "https://*.vercel.app",
+                                "https://favflicks.site",
+                                "https://www.favflicks.site"
                             )
                                 .AllowAnyHeader()
                                 .AllowAnyMethod()
@@ -117,6 +119,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors(MyAllowSpecificOrigins);
+
+app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 
