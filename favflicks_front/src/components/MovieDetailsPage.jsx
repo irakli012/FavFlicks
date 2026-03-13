@@ -37,7 +37,7 @@ function MovieDetailsPage() {
         }
 
         // If direct TMDB failed, try backend endpoint
-        const backendResponse = await fetch(`https://localhost:7245/api/Movies/tmdb/${movieId}`);
+        const backendResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/Movies/tmdb/${movieId}`);
         
         if (backendResponse.ok) {
           const backendData = await backendResponse.json();

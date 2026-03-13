@@ -12,7 +12,7 @@ function MovieCard({ movie, isLarge = false }) {
   const imageUrl = movie.imagePath?.startsWith('http') 
     ? movie.imagePath 
     : movie.imagePath 
-      ? `https://localhost:7245${movie.imagePath}`
+      ? `${import.meta.env.VITE_API_BASE_URL}${movie.imagePath}`
       : 'https://via.placeholder.com/150x200?text=No+Image';
 
   return (
