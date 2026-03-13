@@ -1,5 +1,5 @@
 // src/services/authService.jsx
-const API_BASE_URL = 'https://localhost:7245/api/Auth';
+const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api/Auth`;
 
 const authService = {
   getToken: () => localStorage.getItem('token'),

@@ -28,7 +28,7 @@ function App() {
   const [popularCurrentPage, setPopularCurrentPage] = useState(1);
 
   // Define your API URL (base URL)
-  const API_URL = "https://localhost:7245/api/Movies";
+  const API_URL = `${import.meta.env.VITE_API_BASE_URL}/api/Movies`;
 
   useEffect(() => {
     const fetchMovies = async () => {
