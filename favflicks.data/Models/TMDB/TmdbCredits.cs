@@ -1,14 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.Json.Serialization;
 
 namespace favflicks.data.Models.TMDB
 {
     public class TmdbCredits
     {
+        [JsonPropertyName("cast")]
         public List<TmdbCast> Cast { get; set; }
+
+        [JsonPropertyName("crew")]
         public List<TmdbCrew> Crew { get; set; }
     }
 }

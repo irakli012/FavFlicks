@@ -1,4 +1,4 @@
-﻿using favflicks.data;
+using favflicks.data;
 using favflicks.data.Enums;
 using favflicks.data.Models;
 using favflicks.data.Models.TMDB;
@@ -139,8 +139,8 @@ public class MovieService : IMovieService
                         BackdropPath = result.GetProperty("backdrop_path").GetString() != null
                             ? $"{_tmdbSettings.ImageBaseUrl}original{result.GetProperty("backdrop_path").GetString()}"
                             : null,
-                        ReleaseDate = result.GetProperty("release_date").GetString() != null
-                            ? DateTime.Parse(result.GetProperty("release_date").GetString())
+                        ReleaseDate = DateTime.TryParse(result.TryGetProperty("release_date", out var rd) ? rd.GetString() : null, out var date) 
+                            ? DateTime.SpecifyKind(date, DateTimeKind.Utc) 
                             : null,
                         AverageRating = (double)result.GetProperty("vote_average").GetDecimal(),
                         ExternalUrl = $"https://www.themoviedb.org/movie/{result.GetProperty("id").GetInt32()}",
@@ -284,7 +284,8 @@ public class MovieService : IMovieService
             var content = await movieResponse.Content.ReadAsStringAsync();
             _logger.LogDebug("TMDB API response: {Content}", content);
 
-            var tmdbMovie = JsonSerializer.Deserialize<TmdbMovieDetails>(content)
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var tmdbMovie = JsonSerializer.Deserialize<TmdbMovieDetails>(content, options)
                 ?? throw new Exception("Failed to deserialize TMDB movie data");
 
             var trailer = tmdbMovie.Videos?.Results?
@@ -320,7 +321,7 @@ public class MovieService : IMovieService
                 ImdbUrl = !string.IsNullOrEmpty(tmdbMovie.ImdbId)
                     ? $"https://www.imdb.com/title/{tmdbMovie.ImdbId}/"
                     : null,
-                ReleaseDate = tmdbMovie.ReleaseDate,
+                ReleaseDate = DateTime.TryParse(tmdbMovie.ReleaseDate, out var date) ? DateTime.SpecifyKind(date, DateTimeKind.Utc) : null,
                 RuntimeMinutes = tmdbMovie.Runtime,
                 Director = director,
                 Writers = writers != null ? string.Join(", ", writers) : null,
@@ -367,7 +368,8 @@ public class MovieService : IMovieService
             }
 
             var content = await response.Content.ReadAsStringAsync();
-            var tmdbResults = JsonSerializer.Deserialize<TmdbSearchResponse>(content);
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var tmdbResults = JsonSerializer.Deserialize<TmdbSearchResponse>(content, options);
 
             if (tmdbResults?.Results == null)
             {
@@ -384,7 +386,7 @@ public class MovieService : IMovieService
                 ImagePath = m.PosterPath != null
                     ? $"{_tmdbSettings.ImageBaseUrl}w500{m.PosterPath}"
                     : null,
-                ReleaseDate = m.ReleaseDate,
+                ReleaseDate = DateTime.TryParse(m.ReleaseDate, out var date) ? DateTime.SpecifyKind(date, DateTimeKind.Utc) : null,
                 AverageRating = m.VoteAverage,
                 ExternalUrl = $"https://www.themoviedb.org/movie/{m.Id}"
             });
@@ -402,7 +404,7 @@ public class MovieService : IMovieService
         {
             // Get local results (case insensitive)
             var localResults = await _context.Movies
-                .Where(m => EF.Functions.Like(m.Name, $"%{query}%"))
+                .Where(m => Microsoft.EntityFrameworkCore.EF.Functions.ILike(m.Name, $"%{query}%"))
                 .Take(20)
                 .AsNoTracking()
                 .ToListAsync();

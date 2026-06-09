@@ -1,13 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.Json.Serialization;
 
 namespace favflicks.data.Models.TMDB
 {
     public class TmdbSearchResponse
     {
+        [JsonPropertyName("results")]
         public List<TmdbMovieResult> Results { get; set; }
     }
 }
