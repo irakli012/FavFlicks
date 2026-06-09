@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,5 +18,9 @@ namespace favflicks.data.Models
         public UserProfile? Profile { get; set; }
         public ICollection<Review> Reviews { get; set; } = new List<Review>();
         public ICollection<UserList> Lists { get; set; } = new List<UserList>();
+        public ICollection<WatchWith> InitiatedWatchWiths { get; set; } = new List<WatchWith>();
+        public ICollection<WatchWith> TargetWatchWiths { get; set; } = new List<WatchWith>();
+        public ICollection<Friendship> SentFriendRequests { get; set; } = new List<Friendship>();
+        public ICollection<Friendship> ReceivedFriendRequests { get; set; } = new List<Friendship>();
     }
 }

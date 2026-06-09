@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using favflicks.data;
@@ -11,9 +12,11 @@ using favflicks.data;
 namespace favflicks.data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260609124135_AddWatchWithFeature")]
+    partial class AddWatchWithFeature
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -462,37 +465,6 @@ namespace favflicks.data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Favorites");
-                });
-
-            modelBuilder.Entity("favflicks.data.Models.Friendship", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AddresseeId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("RequesterId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AddresseeId");
-
-                    b.HasIndex("RequesterId");
-
-                    b.ToTable("Friendships");
                 });
 
             modelBuilder.Entity("favflicks.data.Models.ListMovie", b =>
@@ -1035,9 +1007,6 @@ namespace favflicks.data.Migrations
                     b.Property<int>("MovieId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
                     b.Property<string>("TargetUserId")
                         .IsRequired()
                         .HasColumnType("text");
@@ -1155,25 +1124,6 @@ namespace favflicks.data.Migrations
                     b.Navigation("Movie");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("favflicks.data.Models.Friendship", b =>
-                {
-                    b.HasOne("favflicks.data.Models.AppUser", "Addressee")
-                        .WithMany("ReceivedFriendRequests")
-                        .HasForeignKey("AddresseeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("favflicks.data.Models.AppUser", "Requester")
-                        .WithMany("SentFriendRequests")
-                        .HasForeignKey("RequesterId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Addressee");
-
-                    b.Navigation("Requester");
                 });
 
             modelBuilder.Entity("favflicks.data.Models.ListMovie", b =>
@@ -1326,11 +1276,7 @@ namespace favflicks.data.Migrations
 
                     b.Navigation("Ratings");
 
-                    b.Navigation("ReceivedFriendRequests");
-
                     b.Navigation("Reviews");
-
-                    b.Navigation("SentFriendRequests");
 
                     b.Navigation("TargetWatchWiths");
 

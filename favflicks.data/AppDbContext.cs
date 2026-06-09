@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
@@ -19,6 +19,8 @@ namespace favflicks.data
         public DbSet<MovieRating> MovieRatings { get; set; }
         public DbSet<Tag> Tags { get; set; }
         public DbSet<WatchList> WatchList { get; set; }
+        public DbSet<WatchWith> WatchWiths { get; set; }
+        public DbSet<Friendship> Friendships { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -103,6 +105,39 @@ namespace favflicks.data
                 entity.HasOne(w => w.User)
                     .WithMany(u => u.watchLists)
                     .HasForeignKey(w => w.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // Configure WatchWith entity
+            modelBuilder.Entity<WatchWith>(entity =>
+            {
+                entity.HasOne(w => w.Movie)
+                    .WithMany()
+                    .HasForeignKey(w => w.MovieId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(w => w.InitiatorUser)
+                    .WithMany(u => u.InitiatedWatchWiths)
+                    .HasForeignKey(w => w.InitiatorUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(w => w.TargetUser)
+                    .WithMany(u => u.TargetWatchWiths)
+                    .HasForeignKey(w => w.TargetUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // Configure Friendship entity
+            modelBuilder.Entity<Friendship>(entity =>
+            {
+                entity.HasOne(f => f.Requester)
+                    .WithMany(u => u.SentFriendRequests)
+                    .HasForeignKey(f => f.RequesterId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(f => f.Addressee)
+                    .WithMany(u => u.ReceivedFriendRequests)
+                    .HasForeignKey(f => f.AddresseeId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
 

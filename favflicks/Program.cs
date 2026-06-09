@@ -25,6 +25,8 @@ builder.Services.AddIdentity<AppUser, IdentityRole>()
 // Add services to the container.
 builder.Services.AddScoped<IMovieService, MovieService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
+builder.Services.AddScoped<IWatchWithService, WatchWithService>();
+builder.Services.AddScoped<IFriendshipService, FriendshipService>();
 builder.Services.AddScoped<IFavoriteService, FavoriteService>();
 builder.Services.AddScoped<IRatingService, RatingService>();
 builder.Services.AddScoped<ITagService, TagService>();
@@ -107,6 +109,13 @@ builder.Services.AddCors(options =>
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+// Auto-migrate database on startup
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await dbContext.Database.MigrateAsync();
+}
 
 // call admin seed
 await SeedRolesAndAdminAsync(app);
