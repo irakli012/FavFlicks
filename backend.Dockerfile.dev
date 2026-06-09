@@ -1,0 +1,6 @@
+FROM mcr.microsoft.com/dotnet/sdk:10.0
+WORKDIR /app
+# We will mount the source code directory as a volume
+# to allow editing files locally without rebuilding the image
+EXPOSE 5000
+CMD ["dotnet", "run", "--project", "favflicks/favflicks.csproj", "--urls", "http://0.0.0.0:5000"]
