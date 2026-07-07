@@ -144,7 +144,7 @@ function FeedPage() {
   }
 
   return (
-    <div className="px-40 flex flex-1 justify-center py-5 bg-[#181111] min-h-screen">
+    <div className="px-4 md:px-10 lg:px-40 flex flex-1 justify-center py-5 bg-[#181111] min-h-screen">
       <div className="layout-content-container flex flex-col max-w-[960px] flex-1">
         <h2 className="text-white tracking-light text-[28px] font-bold leading-tight px-4 text-left pb-3 pt-5">
           Community Feed

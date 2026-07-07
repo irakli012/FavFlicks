@@ -124,7 +124,7 @@ function AppContent({
       <div className="layout-container flex h-full grow flex-col">
         {/* Toggle switch - only show on home and movies pages */}
         {showToggle && (
-          <div className="flex justify-end px-20 py-2">
+          <div className="flex justify-end px-4 md:px-8 lg:px-20 py-2">
             <ToggleSwitch
               isOn={showTmdbMovies}
               handleToggle={() => setShowTmdbMovies(!showTmdbMovies)}
@@ -137,7 +137,7 @@ function AppContent({
           <Route
             path="/"
             element={
-              <div className="px-20 flex flex-1 justify-center py-5">
+              <div className="px-4 md:px-8 lg:px-20 flex flex-1 justify-center py-5">
                 <div className="layout-content-container flex flex-col w-full flex-1">
                   <SearchBar />
                   <HighestRatedSlider movies={movies} loading={loading} error={error} />

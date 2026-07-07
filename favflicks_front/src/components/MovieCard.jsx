@@ -2,8 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 function MovieCard({ movie, isLarge = false }) {
-  const outerDivClasses = `flex flex-col gap-3 ${isLarge ? 'pb-4' : 'pb-3'} ${isLarge ? 'min-w-[200px]' : 'w-full'} transition-transform duration-200 ease-in-out hover:scale-105 cursor-pointer`;
-  const imageDivClasses = `bg-center bg-no-repeat bg-cover rounded-xl ${isLarge ? 'aspect-[2/3] w-[200px]' : 'aspect-[3/4] w-full'}`;
+  const outerDivClasses = `flex flex-col gap-3 ${isLarge ? 'pb-4' : 'pb-3'} ${isLarge ? 'w-[140px] md:w-[200px] min-w-[140px] md:min-w-[200px]' : 'w-full'} transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-xl cursor-pointer group relative`;
+  const imageDivClasses = `bg-center bg-no-repeat bg-cover rounded-xl ${isLarge ? 'aspect-[2/3] w-full' : 'aspect-[3/4] w-full'} transition-transform duration-500 group-hover:scale-[1.03] shadow-md group-hover:shadow-[0_0_20px_rgba(232,38,38,0.2)]`;
 
   // Use externalId for TMDB movies (source === 1) when id is 0
   const movieIdentifier = movie.source === 1 && movie.id === 0 ? movie.externalId : movie.id;

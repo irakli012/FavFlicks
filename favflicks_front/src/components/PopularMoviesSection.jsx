@@ -13,8 +13,7 @@ function PopularMoviesSection({ movies, loading, error, popularCurrentPage, tota
       )}
       {!loading && !error && movies.length > 0 && (
         <>
-          {/* Hardcoded grid-cols-5 for consistent 5 movies per row */}
-          <div className={`grid grid-cols-${MOVIES_PER_ROW} gap-6 p-4`}>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6 p-2 md:p-4">
             {currentPopularMovies.map(movie => (
               <MovieCard key={movie.Id} movie={movie} />
             ))}
@@ -37,7 +36,7 @@ function PopularMoviesSection({ movies, loading, error, popularCurrentPage, tota
               <button
                 key={index + 1}
                 onClick={() => paginatePopular(index + 1)}
-                className={`text-sm font-bold leading-normal tracking-[0.015em] flex size-10 items-center justify-center text-white rounded-full ${popularCurrentPage === index + 1 ? 'bg-[#382929]' : ''}`}
+                className={`text-sm font-bold leading-normal tracking-[0.015em] flex size-10 items-center justify-center text-white rounded-full transition-all hover:bg-[#4a3636] hover:scale-110 ${popularCurrentPage === index + 1 ? 'bg-[#e82626] shadow-[0_0_10px_rgba(232,38,38,0.5)]' : ''}`}
               >
                 {index + 1}
               </button>

@@ -24,7 +24,7 @@ function HighestRatedSlider({ movies, loading, error }) {
         {/* Left Slider Button */}
         <button
           onClick={() => scrollHighestRated(-1)}
-          className="absolute left-0 z-10 p-2 bg-black bg-opacity-50 rounded-full text-white hover:bg-opacity-75 focus:outline-none"
+          className="absolute left-0 z-10 p-2 bg-[#181111]/80 backdrop-blur-md rounded-full text-white hover:bg-[#e82626] focus:outline-none transition-colors hidden md:block shadow-lg -ml-4"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256">
             <path d="M165.66,202.34a8,8,0,0,1-11.32,11.32l-80-80a8,8,0,0,1,0-11.32l80-80a8,8,0,0,1,11.32,11.32L91.31,128Z"></path>
@@ -33,9 +33,9 @@ function HighestRatedSlider({ movies, loading, error }) {
 
         <div
           ref={highestRatedSliderRef}
-          className="flex overflow-x-auto [-ms-scrollbar-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth"
+          className="flex overflow-x-auto no-scrollbar scroll-smooth w-full"
         >
-          <div className="flex items-stretch p-4 gap-6"> {/* Adjusted gap to gap-6 for slider */}
+          <div className="flex items-stretch py-4 gap-4 md:gap-6 px-4 md:px-0">
             {loading && <p className="text-white">Loading highest rated movies...</p>}
             {error && <p className="text-red-500">{error}</p>}
             {!loading && !error && movies.map(movie => (
@@ -50,7 +50,7 @@ function HighestRatedSlider({ movies, loading, error }) {
         {/* Right Slider Button */}
         <button
           onClick={() => scrollHighestRated(1)}
-          className="absolute right-0 z-10 p-2 bg-black bg-opacity-50 rounded-full text-white hover:bg-opacity-75 focus:outline-none"
+          className="absolute right-0 z-10 p-2 bg-[#181111]/80 backdrop-blur-md rounded-full text-white hover:bg-[#e82626] focus:outline-none transition-colors hidden md:block shadow-lg -mr-4"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256">
             <path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"></path>

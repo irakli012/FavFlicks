@@ -10,10 +10,10 @@ const AuthForm = ({
   isLoading
 }) => {
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="bg-[#2a1f1f] p-8 rounded-lg shadow-lg w-96">
-        <h2 className="text-2xl font-bold mb-6 text-white text-center">{title}</h2>
-        <form onSubmit={onSubmit} className="space-y-4">
+    <div className="min-h-[calc(100vh-100px)] flex items-center justify-center p-4">
+      <div className="glass-panel p-8 rounded-2xl w-full max-w-md animate-fade-in-up shadow-2xl">
+        <h2 className="text-3xl font-extrabold mb-8 text-white text-center tracking-tight">{title}</h2>
+        <form onSubmit={onSubmit} className="space-y-5">
           {error && <div className="text-red-500 mb-4">{error}</div>}
           
           {fields.map(({ id, label, type = 'text' }) => (
@@ -26,7 +26,7 @@ const AuthForm = ({
                 id={id}
                 value={values[id] || ''}
                 onChange={onChange}
-                className="w-full bg-[#3a2e2e] border border-[#4a3e3e] rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full bg-[#181111]/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder:text-white/30"
                 required
               />
             </div>
@@ -35,7 +35,7 @@ const AuthForm = ({
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-red-600 text-white py-3 px-4 rounded-xl font-bold hover:bg-red-700 focus:outline-none transition-all hover:scale-[1.02] hover:shadow-[0_0_15px_rgba(232,38,38,0.4)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
             {isLoading ? 'Loading...' : title}
           </button>

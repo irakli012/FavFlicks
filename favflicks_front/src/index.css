@@ -6,9 +6,21 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Your other custom CSS below */
+@layer base {
+  body {
+    @apply bg-[#181111] text-white;
+  }
+}
 
-:root {
-  background-color: #181111f4;;
-
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  .glass-panel {
+    @apply bg-[#2a1b1b]/60 backdrop-blur-md border border-[#ffffff1a] shadow-lg;
+  }
 }
