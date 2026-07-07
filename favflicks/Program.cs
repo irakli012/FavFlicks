@@ -67,6 +67,8 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+builder.Services.AddAuthorization();
+
 //to accept simple passwords
 builder.Services.Configure<IdentityOptions>(options =>
 {

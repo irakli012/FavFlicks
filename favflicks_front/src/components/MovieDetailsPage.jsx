@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import commentService from '../services/commentService';
+import ratingService from '../services/ratingService';
 
 function MovieDetailsPage() {
   const { movieId } = useParams();
@@ -13,6 +16,11 @@ function MovieDetailsPage() {
     totalReviews: 0,
     distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
   });
+  const { isAuthenticated, currentUser } = useAuth();
+  const [newComment, setNewComment] = useState('');
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+  const [currentUserRating, setCurrentUserRating] = useState(0);
+  const [commentToDelete, setCommentToDelete] = useState(null);
   const TMDB_API_KEY = '826e79d27b08eb6b49dee84d220f1dad';
 
   useEffect(() => {
@@ -21,47 +29,73 @@ function MovieDetailsPage() {
         setLoading(true);
         setError(null);
         
-        // First try direct TMDB API since backend returns minimal data
+        let backendData = null;
+        
+        // 1. First try to fetch from backend as a local DB movie
         try {
-          const tmdbResponse = await fetch(
-            `https://api.themoviedb.org/3/movie/${movieId}?api_key=${TMDB_API_KEY}&append_to_response=credits,videos`
-          );
-          
-          if (tmdbResponse.ok) {
-            const tmdbData = await tmdbResponse.json();
-            setMovie(transformMovieData(tmdbData));
-            return;
+          const backendResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/Movies/${movieId}`);
+          if (backendResponse.ok) {
+            backendData = await backendResponse.json();
           }
-        } catch (tmdbError) {
-          console.log('Direct TMDB API failed:', tmdbError);
+        } catch (e) {
+          console.log("Local backend fetch failed:", e);
         }
 
-        // If direct TMDB failed, try backend endpoint
-        const backendResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/Movies/tmdb/${movieId}`);
-        
-        if (backendResponse.ok) {
-          const backendData = await backendResponse.json();
-          
-          // If backend has externalId but minimal data, use it to get full TMDB data
-          if (backendData.externalId) {
-            try {
-              const tmdbResponse = await fetch(
-                `https://api.themoviedb.org/3/movie/${backendData.externalId}?api_key=${TMDB_API_KEY}&append_to_response=credits,videos`
-              );
-              
-              if (tmdbResponse.ok) {
-                const tmdbData = await tmdbResponse.json();
-                setMovie(transformMovieData(tmdbData));
-                return;
+        // 2. If it's a TMDB movie (either not in our DB yet, or in our DB with Source=1), fetch from TMDB
+        const isTmdb = !backendData || backendData.source === 1;
+        const tmdbIdToFetch = backendData ? backendData.externalId : movieId;
+
+        if (isTmdb && tmdbIdToFetch) {
+          try {
+            const tmdbResponse = await fetch(
+              `https://api.themoviedb.org/3/movie/${tmdbIdToFetch}?api_key=${TMDB_API_KEY}&append_to_response=credits,videos`
+            );
+            
+            if (tmdbResponse.ok) {
+              const tmdbData = await tmdbResponse.json();
+              // Preserve local backend ID if it exists so we don't mix up IDs for comments/ratings
+              if (backendData) {
+                 tmdbData.localDbId = backendData.id; 
+              } else {
+                 // Even if we don't have it locally, we should query the backend to import/get the local ID
+                 // so that we can show comments and ratings immediately.
+                 try {
+                   const importResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/Movies/tmdb/${tmdbIdToFetch}`);
+                   if (importResponse.ok) {
+                     const importData = await importResponse.json();
+                     tmdbData.localDbId = importData.id;
+                   }
+                 } catch (importErr) {
+                   console.log("Silent import failed", importErr);
+                 }
               }
-            } catch (enrichError) {
-              console.log('Failed to enrich with TMDB data:', enrichError);
+              setMovie(transformMovieData(tmdbData));
+              return;
             }
+          } catch (tmdbError) {
+            console.log('Direct TMDB API failed:', tmdbError);
           }
-          
-          // Fallback to backend data if we can't enrich it
+        }
+
+        // 3. Fallback to backend data (for UserImport movies or if TMDB failed)
+        if (backendData) {
+          // Pass the backend data
+          backendData.localDbId = backendData.id;
           setMovie(transformMovieData(backendData));
           return;
+        }
+
+        // 4. Try backend import endpoint as a last resort (in case it was a tmdb id but TMDB api failed directly?)
+        try {
+          const importResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/Movies/tmdb/${movieId}`);
+          if (importResponse.ok) {
+            const importData = await importResponse.json();
+            importData.localDbId = importData.id;
+            setMovie(transformMovieData(importData));
+            return;
+          }
+        } catch (importError) {
+          console.log('Backend TMDB import failed:', importError);
         }
 
         throw new Error('Movie not found in any source');
@@ -106,7 +140,8 @@ function MovieDetailsPage() {
       if (data.title || data.overview) {
         return {
           ...defaultData,
-          id: data.id || movieId,
+          id: data.localDbId || data.id || movieId,
+          localDbId: data.localDbId,
           title: data.title || data.name || defaultData.title,
           description: data.overview || data.description || defaultData.description,
           imagePath: data.poster_path 
@@ -160,7 +195,8 @@ function MovieDetailsPage() {
       // Process backend minimal data structure
       return {
         ...defaultData,
-        id: data.id || movieId,
+        id: data.localDbId || data.id || movieId,
+        localDbId: data.localDbId,
         title: data.name || defaultData.title,
         description: data.description || defaultData.description,
         externalUrl: data.externalUrl || defaultData.externalUrl,
@@ -169,48 +205,127 @@ function MovieDetailsPage() {
 
     if (movieId) {
       fetchMovieDetail();
-      fetchTagsAndComments();
+      setTags(['Suspenseful', 'Intriguing', 'Character-driven']); // Mock tags for now
     }
   }, [movieId]);
 
-  // Fetch tags, comments, and user ratings
-  const fetchTagsAndComments = async () => {
+  // Fetch comments and ratings when localDbId is available
+  useEffect(() => {
+    if (movie?.localDbId) {
+      loadCommentsAndRatings(movie.localDbId);
+    }
+  }, [movie?.localDbId, isAuthenticated]);
+
+  const loadCommentsAndRatings = async (localDbId) => {
     try {
-      // TODO: Replace with actual API calls
-      // For now, using mock data
-      const mockTags = ['Suspenseful', 'Intriguing', 'Character-driven', 'Twisty', 'Emotional'];
-      setTags(mockTags);
+      const [fetchedComments, fetchedRatings] = await Promise.all([
+        commentService.getCommentsByMovieId(localDbId),
+        ratingService.getRatingsForMovie(localDbId)
+      ]);
+      setComments(fetchedComments);
 
-      const mockComments = [
-        {
-          id: 1,
-          userName: 'Ava Harper',
-          avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBkGzmDFlelfQVhL8HVUOJNTMK1QKxyk_r4Z-U3ztG5cJYwsX5_4kEI-DQbHprKWbs6fWWruyjNTOAsLIGpE9p9QfxQSRj9oGb9PfOe4K3lPw4vo0aGwHRbzlibVDk-TuuwgpLI82WDUKiGbAcc9wgvrf6dbxIT3RA7MkrC82-p_BfV2ALVyoURAPSMhWjHzmcoqcfdrS8zNY3rzcANeQT18Rwq-fKWvxAsXB0sE3K4AolzhKJ7gBzRQC4t36HkYLT8rO5glqaTfH1B',
-          comment: 'The Silent Echo is a masterpiece of suspense. The plot twists kept me on the edge of my seat, and the performances were outstanding. A must-watch!',
-          timestamp: '2 weeks ago',
-          likes: 12,
-          dislikes: 2
-        },
-        {
-          id: 2,
-          userName: 'Noah Bennett',
-          avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCyUpyuSXhfoiRPQxxL5UHFwjU1k6bVr2wiB1OeNA7lcbsPpH8CL_CvpkpjsjndowAIYxsCyiaHUHXubKV-9I9Ox5CZdODM_ZlpkZZbBtqNnNSRKRMtaQqXI-_mWSrq8eh3CI23W-06wmzT60FuHU6wxOtqu4r1KU8JaI4giDDZ5LS1AyDkwkIMnxs8lcXIxdpMI03cMeAc7JT0nvahh4z7qpui3eMIxG5dGY4xXfuiE_U5Y7P_P8DGu3cs_OwepJ_w-3TYVFLfAuC0',
-          comment: 'I was captivated by the emotional depth of this film. The characters were so well-developed, and the story was both thrilling and heartbreaking. Highly recommend!',
-          timestamp: '3 weeks ago',
-          likes: 8,
-          dislikes: 1
+      if (fetchedRatings.length > 0) {
+        let sum = 0;
+        const dist = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+        fetchedRatings.forEach(r => {
+            const starValue = Math.ceil(r.value / 2); // Map 1-10 to 1-5
+            sum += r.value;
+            dist[starValue] = (dist[starValue] || 0) + 1;
+        });
+        for (const star in dist) {
+            dist[star] = Math.round((dist[star] / fetchedRatings.length) * 100);
         }
-      ];
-      setComments(mockComments);
+        setUserRatings({
+            averageRating: (sum / fetchedRatings.length) / 2, // Map to 1-5 scale for display
+            totalReviews: fetchedRatings.length,
+            distribution: dist
+        });
+      } else {
+        setUserRatings({ averageRating: 0, totalReviews: 0, distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } });
+      }
 
-      const mockRatings = {
-        averageRating: 4.5,
-        totalReviews: 150,
-        distribution: { 5: 70, 4: 20, 3: 5, 2: 3, 1: 2 }
-      };
-      setUserRatings(mockRatings);
+      if (isAuthenticated) {
+        const userRating = await ratingService.getCurrentUserRating(localDbId);
+        if (userRating) {
+           setCurrentUserRating(Math.ceil(userRating.value / 2));
+        }
+      }
+    } catch(err) {
+      console.error("Error loading comments/ratings:", err);
+    }
+  };
+
+  const ensureLocalDbId = async () => {
+    if (movie.localDbId) return movie.localDbId;
+    try {
+      const token = localStorage.getItem('token');
+      const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+      const importResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/Movies/tmdb/${movie.id || movieId}`, { headers });
+      if (importResponse.ok) {
+        const importData = await importResponse.json();
+        setMovie(prev => ({...prev, localDbId: importData.id}));
+        return importData.id;
+      }
+    } catch (e) {
+      console.error("Failed to auto-import movie", e);
+    }
+    return null;
+  };
+
+  const handleCommentSubmit = async (e) => {
+    e.preventDefault();
+    if (!isAuthenticated || !newComment.trim()) return;
+    
+    setIsSubmittingComment(true);
+    try {
+      const dbId = await ensureLocalDbId();
+      if (!dbId) throw new Error("Could not ensure local movie existence.");
+      
+      const added = await commentService.addComment(dbId, newComment);
+      setNewComment('');
+      setComments(prev => [...prev, {
+        id: added.id,
+        content: added.content,
+        userId: currentUser.id,
+        userName: currentUser.userName || 'You',
+        dateAdded: new Date().toISOString()
+      }]);
+    } catch(err) {
+      console.error(err);
+      alert('Failed to add comment');
+    } finally {
+      setIsSubmittingComment(false);
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    try {
+      await commentService.deleteComment(commentId);
+      setComments(prev => prev.filter(c => c.id !== commentId));
     } catch (err) {
-      console.error('Error fetching tags and comments:', err);
+      console.error(err);
+      alert('Failed to delete comment');
+    } finally {
+      setCommentToDelete(null);
+    }
+  };
+
+  const handleRatingClick = async (star) => {
+    if (!isAuthenticated) {
+       alert("Please log in to rate movies.");
+       return;
+    }
+    const dbId = await ensureLocalDbId();
+    if (!dbId) return;
+
+    try {
+      const value = star * 2; // Map 1-5 to 2-10
+      await ratingService.addOrUpdateRating(dbId, value);
+      setCurrentUserRating(star);
+      loadCommentsAndRatings(dbId); // Reload to reflect new average
+    } catch(err) {
+      console.error(err);
+      alert('Failed to submit rating');
     }
   };
 
@@ -230,16 +345,16 @@ function MovieDetailsPage() {
   return (
     <div className="relative flex size-full min-h-screen flex-col bg-[#171212] text-white">
       {/* Back button */}
-      <div className="px-20 py-5">
+      <div className="px-4 md:px-10 lg:px-20 py-5">
         <Link to="/" className="text-white text-lg hover:underline">
           &larr; Back to Home
         </Link>
       </div>
 
       {/* Movie Header */}
-      <div className="px-40 py-5">
-        <h1 className="text-4xl font-bold">{movie.title}</h1>
-        <div className="flex items-center mt-2 text-gray-400">
+      <div className="px-4 md:px-10 lg:px-40 py-5">
+        <h1 className="text-3xl md:text-4xl font-bold">{movie.title}</h1>
+        <div className="flex flex-wrap items-center mt-2 text-gray-400 gap-x-2">
           <span>{movie.releaseYear}</span>
           {movie.runtimeFormatted && <span className="mx-2">•</span>}
           <span>{movie.runtimeFormatted}</span>
@@ -266,11 +381,11 @@ function MovieDetailsPage() {
       </div>
 
       {/* Movie Details Container */}
-      <div className="px-40 flex flex-1 justify-center py-5">
+      <div className="px-4 md:px-10 lg:px-40 flex flex-1 justify-center py-5">
         <div className="layout-content-container flex flex-col max-w-[960px] flex-1">
           {/* Movie Info Section */}
           <h2 className="text-white text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Movie Info</h2>
-          <div className="p-4 grid grid-cols-[20%_1fr] gap-x-6">
+          <div className="p-4 grid grid-cols-1 md:grid-cols-[20%_1fr] gap-x-6">
             <div className="col-span-2 grid grid-cols-subgrid border-t border-t-[#4f4040] py-5">
               <p className="text-[#b4a2a2] text-sm font-normal leading-normal">Director</p>
               <p className="text-white text-sm font-normal leading-normal">{movie.director}</p>
@@ -344,36 +459,53 @@ function MovieDetailsPage() {
 
           {/* Comments Section */}
           <h2 className="text-white text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Comments</h2>
+          
+          {isAuthenticated ? (
+            <form onSubmit={handleCommentSubmit} className="px-4 mb-6">
+              <textarea
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Add a comment..."
+                className="w-full bg-[#362b2b] text-white p-3 rounded-xl border border-white/10 focus:outline-none focus:border-red-500 min-h-[100px]"
+              />
+              <button
+                type="submit"
+                disabled={isSubmittingComment || !newComment.trim()}
+                className="mt-2 bg-red-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-red-700 disabled:opacity-50"
+              >
+                {isSubmittingComment ? 'Posting...' : 'Post Comment'}
+              </button>
+            </form>
+          ) : (
+            <p className="px-4 text-[#b4a2a2] mb-6">Log in to leave a comment.</p>
+          )}
+
+          {comments.length === 0 && <p className="px-4 text-[#b4a2a2]">No comments yet. Be the first to comment!</p>}
           {comments.map((comment) => (
             <div key={comment.id} className="flex w-full flex-row items-start justify-start gap-3 p-4">
-              <div
-                className="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-10 shrink-0"
-                style={{ backgroundImage: `url("${comment.avatar}")` }}
-              ></div>
-              <div className="flex h-full flex-1 flex-col items-start justify-start">
-                <div className="flex w-full flex-row items-start justify-start gap-x-3">
-                  <p className="text-white text-sm font-bold leading-normal tracking-[0.015em]">{comment.userName}</p>
-                  <p className="text-[#b4a2a2] text-sm font-normal leading-normal">{comment.timestamp}</p>
-                </div>
-                <p className="text-white text-sm font-normal leading-normal">{comment.comment}</p>
-                <div className="flex w-full flex-row items-center justify-start gap-9 pt-2">
-                  <div className="flex items-center gap-2">
-                    <div className="text-[#b4a2a2]" data-icon="ThumbsUp" data-size="20px" data-weight="regular">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256">
-                        <path d="M234,80.12A24,24,0,0,0,216,72H160V56a40,40,0,0,0-40-40,8,8,0,0,0-7.16,4.42L75.06,96H32a16,16,0,0,0-16,16v88a16,16,0,0,0,16,16H204a24,24,0,0,0,23.82-21l12-96A24,24,0,0,0,234,80.12ZM32,112H72v88H32ZM223.94,97l-12,96a8,8,0,0,1-7.94,7H88V105.89l36.71-73.43A24,24,0,0,1,144,56V80a8,8,0,0,0,8,8h64a8,8,0,0,1,7.94,9Z"></path>
-                      </svg>
-                    </div>
-                    <p className="text-[#b4a2a2] text-sm font-normal leading-normal">{comment.likes}</p>
+              <div className="size-10 rounded-full bg-gradient-to-br from-red-500 to-purple-600 flex items-center justify-center text-white font-bold uppercase shrink-0">
+                 {comment.userName ? comment.userName.charAt(0) : '?'}
+              </div>
+              <div className="flex h-full flex-1 flex-col items-start justify-start w-full">
+                <div className="flex w-full flex-row items-center justify-between gap-x-3">
+                  <div className="flex flex-row items-center gap-x-2">
+                    <p className="text-white text-sm font-bold leading-normal tracking-[0.015em]">{comment.userName}</p>
+                    {comment.dateAdded && (
+                      <p className="text-[#b4a2a2] text-xs font-normal">
+                        • {new Date(comment.dateAdded).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                      </p>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="text-[#b4a2a2]" data-icon="ThumbsDown" data-size="20px" data-weight="regular">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256">
-                        <path d="M239.82,157l-12-96A24,24,0,0,0,204,40H32A16,16,0,0,0,16,56v88a16,16,0,0,0,16,16H75.06l37.78,75.58A8,8,0,0,0,120,240a40,40,0,0,0,40-40V184h56a24,24,0,0,0,23.82-27ZM72,144H32V56H72Zm150,21.29a7.88,7.88,0,0,1-6,2.71H152a8,8,0,0,0-8,8v24a24,24,0,0,1-19.29,23.54L88,150.11V56H204a8,8,0,0,1,7.94,7l12,96A7.87,7.87,0,0,1,222,165.29Z"></path>
-                      </svg>
-                    </div>
-                    <p className="text-[#b4a2a2] text-sm font-normal leading-normal">{comment.dislikes}</p>
-                  </div>
+                  {isAuthenticated && currentUser && (currentUser.id === comment.userId || currentUser.roles?.includes('Admin')) && (
+                    <button 
+                      onClick={() => setCommentToDelete(comment.id)}
+                      className="text-red-500 hover:text-red-400 text-xs font-medium transition-colors"
+                    >
+                      Delete
+                    </button>
+                  )}
                 </div>
+                <p className="text-white text-sm font-normal leading-normal mt-1">{comment.content}</p>
               </div>
             </div>
           ))}
@@ -383,20 +515,34 @@ function MovieDetailsPage() {
           <div className="flex flex-wrap gap-x-8 gap-y-6 p-4">
             <div className="flex flex-col gap-2">
               <p className="text-white text-4xl font-black leading-tight tracking-[-0.033em]">{userRatings.averageRating.toFixed(1)}</p>
-              <div className="flex gap-0.5">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <div key={star} className="text-white" data-icon="Star" data-size="18px" data-weight={star <= Math.round(userRatings.averageRating) ? "fill" : "regular"}>
-                    {star <= Math.round(userRatings.averageRating) ? (
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18px" height="18px" fill="currentColor" viewBox="0 0 256 256">
-                        <path d="M234.5,114.38l-45.1,39.36,13.51,58.6a16,16,0,0,1-23.84,17.34l-51.11-31-51,31a16,16,0,0,1-23.84-17.34L66.61,153.8,21.5,114.38a16,16,0,0,1,9.11-28.06l59.46-5.15,23.21-55.36a15.95,15.95,0,0,1,29.44,0h0L166,81.17l59.44,5.15a16,16,0,0,1,9.11,28.06Z"></path>
-                      </svg>
-                    ) : (
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18px" height="18px" fill="currentColor" viewBox="0 0 256 256">
-                        <path d="M239.2,97.29a16,16,0,0,0-13.81-11L166,81.17,142.72,25.81h0a15.95,15.95,0,0,0-29.44,0L90.07,81.17,30.61,86.32a16,16,0,0,0-9.11,28.06L66.61,153.8,53.09,212.34a16,16,0,0,0,23.84,17.34l51-31,51.11,31a16,16,0,0,0,23.84-17.34l-13.51-58.6,45.1-39.36A16,16,0,0,0,239.2,97.29Zm-15.22,5-45.1,39.36a16,16,0,0,0-5.08,15.71L187.35,216v0l-51.07-31a15.9,15.9,0,0,0-16.54,0l-51,31h0L82.2,157.4a16,16,0,0,0-5.08-15.71L32,102.35a.37.37,0,0,1,0-.09l59.44-5.14a16,16,0,0,0,13.35-9.75L128,32.08l23.2,55.29a16,16,0,0,0,13.35,9.75L224,102.26S224,102.32,224,102.33Z"></path>
-                      </svg>
-                    )}
-                  </div>
-                ))}
+              <div className="flex gap-1 cursor-pointer">
+                {[1, 2, 3, 4, 5].map((star) => {
+                  // If logged in, user's rating dictates filled stars; else use average
+                  const isFilled = isAuthenticated && currentUserRating > 0 
+                    ? star <= currentUserRating 
+                    : star <= Math.round(userRatings.averageRating);
+                    
+                  return (
+                    <div 
+                      key={star} 
+                      className={`text-white transition-colors ${isAuthenticated ? 'hover:text-red-400' : ''}`}
+                      data-icon="Star" 
+                      data-size="24px" 
+                      data-weight={isFilled ? "fill" : "regular"}
+                      onClick={() => handleRatingClick(star)}
+                    >
+                      {isFilled ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                          <path d="M234.5,114.38l-45.1,39.36,13.51,58.6a16,16,0,0,1-23.84,17.34l-51.11-31-51,31a16,16,0,0,1-23.84-17.34L66.61,153.8,21.5,114.38a16,16,0,0,1,9.11-28.06l59.46-5.15,23.21-55.36a15.95,15.95,0,0,1,29.44,0h0L166,81.17l59.44,5.15a16,16,0,0,1,9.11,28.06Z"></path>
+                        </svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                          <path d="M239.2,97.29a16,16,0,0,0-13.81-11L166,81.17,142.72,25.81h0a15.95,15.95,0,0,0-29.44,0L90.07,81.17,30.61,86.32a16,16,0,0,0-9.11,28.06L66.61,153.8,53.09,212.34a16,16,0,0,0,23.84,17.34l51-31,51.11,31a16,16,0,0,0,23.84-17.34l-13.51-58.6,45.1-39.36A16,16,0,0,0,239.2,97.29Zm-15.22,5-45.1,39.36a16,16,0,0,0-5.08,15.71L187.35,216v0l-51.07-31a15.9,15.9,0,0,0-16.54,0l-51,31h0L82.2,157.4a16,16,0,0,0-5.08-15.71L32,102.35a.37.37,0,0,1,0-.09l59.44-5.14a16,16,0,0,0,13.35-9.75L128,32.08l23.2,55.29a16,16,0,0,0,13.35,9.75L224,102.26S224,102.32,224,102.33Z"></path>
+                        </svg>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
               <p className="text-white text-base font-normal leading-normal">{userRatings.totalReviews} reviews</p>
             </div>
@@ -417,6 +563,30 @@ function MovieDetailsPage() {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {commentToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-[#2a2121] p-6 rounded-2xl shadow-2xl max-w-sm w-full border border-white/10 transform transition-all">
+            <h3 className="text-xl font-bold text-white mb-2">Delete Comment</h3>
+            <p className="text-gray-300 mb-6">Are you sure you want to delete this comment? This action cannot be undone.</p>
+            <div className="flex justify-end gap-3">
+              <button 
+                onClick={() => setCommentToDelete(null)}
+                className="px-4 py-2 rounded-xl text-sm font-medium text-white hover:bg-white/10 transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => handleDeleteComment(commentToDelete)}
+                className="px-4 py-2 rounded-xl text-sm font-bold bg-red-600 text-white hover:bg-red-700 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

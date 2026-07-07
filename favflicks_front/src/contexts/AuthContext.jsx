@@ -11,7 +11,23 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const token = authService.getToken();
-    const user = authService.getUser();
+    let user = authService.getUser();
+    
+    if (token && user) {
+      try {
+        const decoded = JSON.parse(atob(token.split('.')[1]));
+        user = {
+          ...user,
+          id: decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] || decoded.nameid,
+          roles: decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || decoded.role || []
+        };
+        // Ensure roles is an array
+        if (!Array.isArray(user.roles)) user.roles = [user.roles];
+      } catch (e) {
+        console.error("Failed to parse token", e);
+      }
+    }
+    
     setIsAuthenticated(!!token);
     setCurrentUser(user);
     setIsLoading(false);
@@ -20,8 +36,20 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     const data = await authService.login(credentials);
     if (data && data.token) {
+      let user = data.user;
+      try {
+        const decoded = JSON.parse(atob(data.token.split('.')[1]));
+        user = {
+          ...user,
+          id: decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] || decoded.nameid,
+          roles: decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || decoded.role || []
+        };
+        if (!Array.isArray(user.roles)) user.roles = [user.roles];
+      } catch (e) {
+        console.error("Failed to parse token", e);
+      }
       setIsAuthenticated(true);
-      setCurrentUser(data.user);
+      setCurrentUser(user);
       return data;
     }
     throw new Error('Login failed: Invalid response from server');

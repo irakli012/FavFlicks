@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,9 +16,11 @@ namespace favflicks.data.Models
         [JsonIgnore]
         public Movie? Movie { get; set; }
 
-        public string UserId { get; set; } = null!; 
+        public string? UserId { get; set; }
         [JsonIgnore]
         public AppUser? User { get; set; }
+
+        public DateTime DateAdded { get; set; } = DateTime.UtcNow;
     }
 
 }

@@ -1,4 +1,4 @@
-﻿using favflicks.data.Enums;
+using favflicks.data.Enums;
 using favflicks.data.Models;
 using favflicks.services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -85,7 +85,7 @@ namespace favflicks.Controllers
         {
             try
             {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "system";
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
                 var movie = await movieService.ImportFromTmdbAsync(tmdbId, userId);
                 return Ok(movie);

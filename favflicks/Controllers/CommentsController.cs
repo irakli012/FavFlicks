@@ -1,4 +1,4 @@
-﻿using favflicks.data.Models;
+using favflicks.data.Models;
 using favflicks.services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -12,10 +12,18 @@ namespace favflicks.Controllers
     public class CommentsController(ICommentService commentService) : ControllerBase
     {
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Comment>>> GetCommentsByMovieId(int movie)
+        public async Task<ActionResult<IEnumerable<object>>> GetCommentsByMovieId(int movie)
         {
             var comments = await commentService.GetCommentsByMovieIdAsync(movie);
-            return Ok(comments);
+            var result = comments.Select(c => new {
+                c.Id,
+                c.Content,
+                c.MovieId,
+                c.UserId,
+                UserName = c.User?.UserName ?? "Unknown",
+                c.DateAdded
+            });
+            return Ok(result);
         }
 
         [HttpGet("{id}")]

@@ -264,6 +264,15 @@ public class MovieService : IMovieService
 
     public async Task<Movie> ImportFromTmdbAsync(int tmdbId, string userId)
     {
+        var existingMovie = await _context.Movies
+            .FirstOrDefaultAsync(m => m.Source == MovieSource.TMDB && m.ExternalId == tmdbId.ToString());
+
+        if (existingMovie != null)
+        {
+            _logger.LogInformation("Movie {TmdbId} already exists in local DB. Returning existing.", tmdbId);
+            return existingMovie;
+        }
+
         using var httpClient = _httpClientFactory.CreateClient("TMDB");
 
         try
