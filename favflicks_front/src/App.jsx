@@ -56,6 +56,35 @@ function App() {
     fetchMovies();
   }, []);
 
+  // Debounce search
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(async () => {
+      if (searchTerm.trim() === '') {
+        setSearchResults([]);
+        setIsSearching(false);
+        return;
+      }
+
+      try {
+        setIsSearching(true);
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/Movies/search?query=${encodeURIComponent(searchTerm)}`);
+        if (!response.ok) throw new Error('Search failed');
+        const data = await response.json();
+        setSearchResults(data);
+      } catch (err) {
+        console.error('Search error:', err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 500); // 500ms delay
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm]);
+
+  const handleSearchChange = (val) => {
+    setSearchTerm(val);
+  };
+
   // Popular Movies Pagination Logic
   const totalPopularPages = Math.ceil(movies.length / POPULAR_MOVIES_PER_PAGE);
   const indexOfLastPopularMovie = popularCurrentPage * POPULAR_MOVIES_PER_PAGE;
@@ -79,6 +108,10 @@ function App() {
         paginatePopular={paginatePopular}
         currentPopularMovies={currentPopularMovies}
         MOVIES_PER_ROW={MOVIES_PER_ROW}
+        searchTerm={searchTerm}
+        onSearchChange={handleSearchChange}
+        searchResults={searchResults}
+        isSearching={isSearching}
       />
     </Router>
   );
@@ -92,7 +125,11 @@ function AppContent({
   totalPopularPages, 
   paginatePopular, 
   currentPopularMovies, 
-  MOVIES_PER_ROW 
+  MOVIES_PER_ROW,
+  searchTerm,
+  onSearchChange,
+  searchResults,
+  isSearching
 }) {
   const { isAuthenticated } = useAuth();
   
@@ -124,18 +161,59 @@ function AppContent({
                       </Link>
                     )}
                   </div>
-                  <SearchBar />
-                  <HighestRatedSlider movies={movies} loading={loading} error={error} />
-                  <PopularMoviesSection
-                    movies={movies}
-                    loading={loading}
-                    error={error}
-                    popularCurrentPage={popularCurrentPage}
-                    totalPopularPages={totalPopularPages}
-                    paginatePopular={paginatePopular}
-                    currentPopularMovies={currentPopularMovies}
-                    MOVIES_PER_ROW={MOVIES_PER_ROW}
-                  />
+                  <SearchBar value={searchTerm} onChange={onSearchChange} />
+                  
+                  {searchTerm.trim() !== '' ? (
+                    <div className="mt-6">
+                      <h2 className="text-2xl font-bold text-white mb-4">Search Results for "{searchTerm}"</h2>
+                      {isSearching ? (
+                        <div className="flex justify-center py-10">
+                          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#e82626]"></div>
+                        </div>
+                      ) : searchResults.length > 0 ? (
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                          {searchResults.map(movie => (
+                            <Link to={`/movie/${movie.id}`} key={movie.id} className="group">
+                              <div className="bg-[#2a1b1b] rounded-xl overflow-hidden border border-[#382929] transition-all group-hover:scale-105 group-hover:border-[#e82626]">
+                                <div className="aspect-[2/3] w-full relative">
+                                  {movie.imagePath ? (
+                                    <img src={movie.imagePath} alt={movie.name} className="w-full h-full object-cover" />
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center bg-[#181111] text-gray-500">No Poster</div>
+                                  )}
+                                  <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm px-2 py-1 rounded text-xs font-bold text-yellow-400 flex items-center gap-1">
+                                    ★ {movie.averageRating > 0 ? movie.averageRating.toFixed(1) : 'NR'}
+                                  </div>
+                                </div>
+                                <div className="p-3">
+                                  <h3 className="text-white font-medium text-sm line-clamp-1">{movie.name}</h3>
+                                  <p className="text-gray-400 text-xs mt-1">{movie.releaseDate ? new Date(movie.releaseDate).getFullYear() : 'N/A'}</p>
+                                </div>
+                              </div>
+                            </Link>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-10 text-gray-400">
+                          No movies found matching your search.
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <>
+                      <HighestRatedSlider movies={movies} loading={loading} error={error} />
+                      <PopularMoviesSection
+                        movies={movies}
+                        loading={loading}
+                        error={error}
+                        popularCurrentPage={popularCurrentPage}
+                        totalPopularPages={totalPopularPages}
+                        paginatePopular={paginatePopular}
+                        currentPopularMovies={currentPopularMovies}
+                        MOVIES_PER_ROW={MOVIES_PER_ROW}
+                      />
+                    </>
+                  )}
                 </div>
               </div>
             }

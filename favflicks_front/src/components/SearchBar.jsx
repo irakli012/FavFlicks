@@ -1,7 +1,7 @@
 import React from 'react';
 
 // SearchBar component for the main search input
-function SearchBar() {
+function SearchBar({ value, onChange }) {
   return (
     <div className="px-4 py-3">
       <label className="flex flex-col min-w-40 h-12 w-full" htmlFor="main-search">
@@ -22,8 +22,8 @@ function SearchBar() {
             id="main-search"
             placeholder="Search for movies, TV shows, people..."
             className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-white focus:outline-0 focus:ring-0 border-none bg-[#382929] focus:border-none h-full placeholder:text-[#b89d9d] px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal"
-            value=""
-            readOnly
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
           />
         </div>
       </label>

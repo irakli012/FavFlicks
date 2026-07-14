@@ -84,9 +84,10 @@ public class MovieService : IMovieService
             _logger.LogInformation("Found {Count} TMDB movies", tmdbMovies.Count());
 
             // Combine results
+            // Custom movies first (newest added), then TMDB by rating
             var combinedMovies = localMovies
-                .Concat(tmdbMovies)
-                .OrderByDescending(m => m.AverageRating)
+                .OrderByDescending(m => m.DateAdded)
+                .Concat(tmdbMovies.OrderByDescending(m => m.AverageRating))
                 .ToList();
 
             _logger.LogInformation("Returning {Count} combined movies", combinedMovies.Count);
@@ -105,62 +106,70 @@ public class MovieService : IMovieService
 
         try
         {
-            var response = await _retryPolicy.ExecuteAsync(() =>
-                httpClient.GetAsync($"movie/popular?api_key={_tmdbSettings.ApiKey}"));
+            var movies = new List<Movie>();
+            var tasks = new List<Task<HttpResponseMessage>>();
 
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-            _logger.LogDebug("TMDB API Response: {Content}", content);
-
-            // Parse manually to better handle errors
-            using JsonDocument doc = JsonDocument.Parse(content);
-            var root = doc.RootElement;
-
-            if (!root.TryGetProperty("results", out var resultsElement))
+            // Fetch 5 pages to get 100 movies
+            for (int i = 1; i <= 5; i++)
             {
-                _logger.LogWarning("TMDB response missing 'results' property");
-                return Enumerable.Empty<Movie>();
+                var page = i;
+                tasks.Add(_retryPolicy.ExecuteAsync(() =>
+                    httpClient.GetAsync($"movie/popular?api_key={_tmdbSettings.ApiKey}&page={page}")));
             }
 
-            var movies = new List<Movie>();
-            foreach (var result in resultsElement.EnumerateArray())
+            var responses = await Task.WhenAll(tasks);
+
+            foreach (var response in responses)
             {
-                try
+                if (!response.IsSuccessStatusCode)
+                    continue;
+
+                var content = await response.Content.ReadAsStringAsync();
+                using JsonDocument doc = JsonDocument.Parse(content);
+                var root = doc.RootElement;
+
+                if (!root.TryGetProperty("results", out var resultsElement))
+                    continue;
+
+                foreach (var result in resultsElement.EnumerateArray())
                 {
-                    var movie = new Movie
+                    try
                     {
-                        Source = MovieSource.TMDB,
-                        ExternalId = result.GetProperty("id").GetInt32().ToString(),
-                        Name = result.GetProperty("title").GetString(),
-                        Description = result.GetProperty("overview").GetString(),
-                        ImagePath = result.GetProperty("poster_path").GetString() != null
-                            ? $"{_tmdbSettings.ImageBaseUrl}w500{result.GetProperty("poster_path").GetString()}"
-                            : null,
-                        BackdropPath = result.GetProperty("backdrop_path").GetString() != null
-                            ? $"{_tmdbSettings.ImageBaseUrl}original{result.GetProperty("backdrop_path").GetString()}"
-                            : null,
-                        ReleaseDate = DateTime.TryParse(result.TryGetProperty("release_date", out var rd) ? rd.GetString() : null, out var date) 
-                            ? DateTime.SpecifyKind(date, DateTimeKind.Utc) 
-                            : null,
-                        AverageRating = (double)result.GetProperty("vote_average").GetDecimal(),
-                        ExternalUrl = $"https://www.themoviedb.org/movie/{result.GetProperty("id").GetInt32()}",
-                        Tags = new List<Tag>(),
-                        Ratings = new List<MovieRating>(),
-                        Comments = new List<Comment>(),
-                        Favorites = new List<Favorite>(),
-                        Watchlists = new List<WatchList>()
-                    };
-                    movies.Add(movie);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Error parsing TMDB movie result");
+                        var movie = new Movie
+                        {
+                            Source = MovieSource.TMDB,
+                            ExternalId = result.GetProperty("id").GetInt32().ToString(),
+                            Name = result.GetProperty("title").GetString(),
+                            Description = result.GetProperty("overview").GetString(),
+                            ImagePath = result.GetProperty("poster_path").GetString() != null
+                                ? $"{_tmdbSettings.ImageBaseUrl}w500{result.GetProperty("poster_path").GetString()}"
+                                : null,
+                            BackdropPath = result.GetProperty("backdrop_path").GetString() != null
+                                ? $"{_tmdbSettings.ImageBaseUrl}original{result.GetProperty("backdrop_path").GetString()}"
+                                : null,
+                            ReleaseDate = DateTime.TryParse(result.TryGetProperty("release_date", out var rd) ? rd.GetString() : null, out var date) 
+                                ? DateTime.SpecifyKind(date, DateTimeKind.Utc) 
+                                : null,
+                            AverageRating = (double)result.GetProperty("vote_average").GetDecimal(),
+                            ExternalUrl = $"https://www.themoviedb.org/movie/{result.GetProperty("id").GetInt32()}",
+                            Tags = new List<Tag>(),
+                            Ratings = new List<MovieRating>(),
+                            Comments = new List<Comment>(),
+                            Favorites = new List<Favorite>(),
+                            Watchlists = new List<WatchList>()
+                        };
+                        movies.Add(movie);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Error parsing TMDB movie result");
+                    }
                 }
             }
 
             _logger.LogInformation("Successfully parsed {Count} TMDB movies", movies.Count);
-            return movies;
+            // Remove duplicates just in case TMDB popular pages shifted during fetch
+            return movies.DistinctBy(m => m.ExternalId).ToList();
         }
         catch (Exception ex)
         {
