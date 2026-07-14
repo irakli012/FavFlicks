@@ -7,7 +7,8 @@ const AuthForm = ({
   onChange,
   onSubmit,
   error,
-  isLoading
+  isLoading,
+  children
 }) => {
   return (
     <div className="min-h-[calc(100vh-100px)] flex items-center justify-center p-4">
@@ -40,6 +41,7 @@ const AuthForm = ({
             {isLoading ? 'Loading...' : title}
           </button>
         </form>
+        {children}
       </div>
     </div>
   );

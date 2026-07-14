@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import AuthForm from '../components/AuthForm';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -49,7 +49,13 @@ const LoginPage = () => {
       onSubmit={handleSubmit}
       error={error}
       isLoading={isLoading}
-    />
+    >
+      <div className="mt-4 text-center">
+        <Link to="/forgot-password" className="text-red-400 hover:text-red-300 text-sm font-medium transition-colors">
+          Forgot Password?
+        </Link>
+      </div>
+    </AuthForm>
   );
 };
 

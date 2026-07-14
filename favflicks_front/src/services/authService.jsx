@@ -12,7 +12,25 @@ const authService = {
       body: JSON.stringify(credentials),
     });
 
-    if (!response.ok) throw new Error('Login failed');
+    if (!response.ok) {
+      const text = await response.text();
+      let errorMessage = 'Login failed';
+      if (text) {
+        try {
+          const json = JSON.parse(text);
+          if (Array.isArray(json)) {
+            errorMessage = json.map(e => e.description || e.errorMessage || JSON.stringify(e)).join(', ');
+          } else if (json.errors) {
+            errorMessage = Object.values(json.errors).flat().join(', ');
+          } else {
+            errorMessage = json.message || json.title || text;
+          }
+        } catch {
+          errorMessage = text;
+        }
+      }
+      throw new Error(errorMessage);
+    }
 
     const data = await response.json();
     localStorage.setItem('token', data.token);
@@ -27,7 +45,25 @@ const authService = {
       body: JSON.stringify(data),
     });
 
-    if (!response.ok) throw new Error('Registration failed');
+    if (!response.ok) {
+      const text = await response.text();
+      let errorMessage = 'Registration failed';
+      if (text) {
+        try {
+          const json = JSON.parse(text);
+          if (Array.isArray(json)) {
+            errorMessage = json.map(e => e.description || e.errorMessage || JSON.stringify(e)).join(', ');
+          } else if (json.errors) {
+            errorMessage = Object.values(json.errors).flat().join(', ');
+          } else {
+            errorMessage = json.message || json.title || text;
+          }
+        } catch {
+          errorMessage = text;
+        }
+      }
+      throw new Error(errorMessage);
+    }
 
     const result = await response.json();
     localStorage.setItem('token', result.token);
@@ -43,6 +79,49 @@ const authService = {
       ...result,
       user: user
     };
+  },
+
+  forgotPassword: async (email) => {
+    const response = await fetch(`${API_BASE_URL}/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      let errorMessage = 'Forgot password failed';
+      try {
+        const json = JSON.parse(text);
+        errorMessage = json.message || text;
+      } catch {
+        errorMessage = text;
+      }
+      throw new Error(errorMessage);
+    }
+    return response.json();
+  },
+
+  resetPassword: async (data) => {
+    const response = await fetch(`${API_BASE_URL}/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      let errorMessage = 'Reset password failed';
+      try {
+        const json = JSON.parse(text);
+        if (json.message) errorMessage = json.message;
+        else errorMessage = text;
+      } catch {
+        errorMessage = text;
+      }
+      throw new Error(errorMessage);
+    }
+    return response.json();
   },
 
   logout: () => {

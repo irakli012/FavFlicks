@@ -37,6 +37,7 @@ const ratingService = {
     });
 
     if (!response.ok) {
+      if (response.status === 401) throw new Error('401_UNAUTHORIZED');
       throw new Error('Failed to submit rating');
     }
   }

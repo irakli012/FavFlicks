@@ -10,6 +10,8 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ProfilePage from './pages/ProfilePage';
 import FeedPage from './pages/FeedPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import './index.css';
 import Snowfall from 'react-snowfall'
 
@@ -106,8 +108,8 @@ function AppContent({
       className="relative flex size-full min-h-screen flex-col bg-[#181111] dark group/design-root overflow-x-hidden"
       style={{ fontFamily: '"Plus Jakarta Sans", "Noto Sans", sans-serif' }}
     >
-      {/* ❄️ Snowfall overlay */}
-      <Snowfall
+      {/* ❄️ Snowfall overlay (Disabled for now) */}
+      {/* <Snowfall
         snowflakeCount={120}
         color="white"
         style={{
@@ -117,7 +119,7 @@ function AppContent({
           zIndex: 50,
           pointerEvents: 'none', // 👈 important
         }}
-      />
+      /> */}
 
       <Header />
 
@@ -159,6 +161,8 @@ function AppContent({
           <Route path="/feed" element={<FeedPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/profile" element={<ProfilePage />} />
         </Routes>
       </div>

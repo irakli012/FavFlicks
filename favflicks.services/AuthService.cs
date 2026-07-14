@@ -1,4 +1,4 @@
-﻿using favflicks.data.Dtos;
+using favflicks.data.Dtos;
 using favflicks.data.Models;
 using favflicks.services.Interfaces;
 using Microsoft.AspNetCore.Identity;
@@ -12,7 +12,7 @@ namespace favflicks.services
 {
     public class AuthService(UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager, IConfiguration config) : IAuthService
     {
-        public async Task<string?> RegisterAsync(RegisterDto dto)
+        public async Task<(string? Token, string? Error)> RegisterAsync(RegisterDto dto)
         {
             var user = new AppUser
             {
@@ -25,7 +25,7 @@ namespace favflicks.services
             {
                 var errorMessage = string.Join("; ", result.Errors.Select(e => e.Description));
                 Console.WriteLine("Registration failed: " + errorMessage);
-                return null; 
+                return (null, errorMessage); 
             }
 
             // Add default role
@@ -34,7 +34,7 @@ namespace favflicks.services
 
             await userManager.AddToRoleAsync(user, "User");
 
-            return GenerateJwtToken(user);
+            return (GenerateJwtToken(user), null);
         }
 
         public async Task<(string? Token, AppUser User)> LoginAsync(LoginDto dto)
@@ -45,6 +45,30 @@ namespace favflicks.services
 
             var token = GenerateJwtToken(user);
             return (token, user);
+        }
+
+        public async Task<string?> ForgotPasswordAsync(ForgotPasswordDto dto)
+        {
+            var user = await userManager.FindByEmailAsync(dto.Email);
+            if (user == null) return null; // Or throw, but returning null handles it silently
+
+            var token = await userManager.GeneratePasswordResetTokenAsync(user);
+            return token;
+        }
+
+        public async Task<(bool Success, string? Error)> ResetPasswordAsync(ResetPasswordDto dto)
+        {
+            var user = await userManager.FindByEmailAsync(dto.Email);
+            if (user == null) return (false, "User not found.");
+
+            var result = await userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
+            if (!result.Succeeded)
+            {
+                var errorMessage = string.Join("; ", result.Errors.Select(e => e.Description));
+                return (false, errorMessage);
+            }
+
+            return (true, null);
         }
 
         private string GenerateJwtToken(AppUser user)

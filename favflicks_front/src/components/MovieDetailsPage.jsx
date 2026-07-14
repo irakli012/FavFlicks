@@ -21,6 +21,7 @@ function MovieDetailsPage() {
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [currentUserRating, setCurrentUserRating] = useState(0);
   const [commentToDelete, setCommentToDelete] = useState(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const TMDB_API_KEY = '826e79d27b08eb6b49dee84d220f1dad';
 
   useEffect(() => {
@@ -292,7 +293,11 @@ function MovieDetailsPage() {
       }]);
     } catch(err) {
       console.error(err);
-      alert('Failed to add comment');
+      if (err.message === '401_UNAUTHORIZED') {
+        setShowLoginModal(true);
+      } else {
+        alert('Failed to add comment');
+      }
     } finally {
       setIsSubmittingComment(false);
     }
@@ -312,7 +317,7 @@ function MovieDetailsPage() {
 
   const handleRatingClick = async (star) => {
     if (!isAuthenticated) {
-       alert("Please log in to rate movies.");
+       setShowLoginModal(true);
        return;
     }
     const dbId = await ensureLocalDbId();
@@ -325,7 +330,11 @@ function MovieDetailsPage() {
       loadCommentsAndRatings(dbId); // Reload to reflect new average
     } catch(err) {
       console.error(err);
-      alert('Failed to submit rating');
+      if (err.message === '401_UNAUTHORIZED') {
+        setShowLoginModal(true);
+      } else {
+        alert('Failed to submit rating');
+      }
     }
   };
 
@@ -583,6 +592,30 @@ function MovieDetailsPage() {
               >
                 Delete
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Login Required Modal */}
+      {showLoginModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-[#2a2121] p-6 rounded-2xl shadow-2xl max-w-sm w-full border border-white/10 transform transition-all text-center">
+            <h3 className="text-xl font-bold text-white mb-2">Login Required</h3>
+            <p className="text-gray-300 mb-6">Your session has expired or you need to log in to perform this action.</p>
+            <div className="flex justify-center gap-3">
+              <button 
+                onClick={() => setShowLoginModal(false)}
+                className="px-4 py-2 rounded-xl text-sm font-medium text-white hover:bg-white/10 transition-colors"
+              >
+                Cancel
+              </button>
+              <Link 
+                to="/login"
+                className="px-4 py-2 rounded-xl text-sm font-bold bg-red-600 text-white hover:bg-red-700 transition-colors"
+              >
+                Go to Login
+              </Link>
             </div>
           </div>
         </div>

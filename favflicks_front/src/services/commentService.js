@@ -21,6 +21,7 @@ const commentService = {
     });
 
     if (!response.ok) {
+      if (response.status === 401) throw new Error('401_UNAUTHORIZED');
       throw new Error('Failed to add comment');
     }
     return response.json();
@@ -38,6 +39,7 @@ const commentService = {
     });
 
     if (!response.ok) {
+      if (response.status === 401) throw new Error('401_UNAUTHORIZED');
       throw new Error('Failed to update comment');
     }
     return response.json();
@@ -53,6 +55,7 @@ const commentService = {
     });
 
     if (!response.ok) {
+      if (response.status === 401) throw new Error('401_UNAUTHORIZED');
       throw new Error('Failed to delete comment');
     }
   }

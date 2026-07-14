@@ -1,4 +1,4 @@
-﻿using favflicks.data.Dtos;
+using favflicks.data.Dtos;
 using favflicks.services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -22,8 +22,8 @@ namespace favflicks.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterDto dto)
         {
-            var token = await authService.RegisterAsync(dto);
-            if (token == null) return BadRequest("Registration failed. check logs.");
+            var (token, error) = await authService.RegisterAsync(dto);
+            if (token == null) return BadRequest(new { message = error ?? "Registration failed." });
             return Ok(new { token });
         }
 
@@ -42,6 +42,29 @@ namespace favflicks.Controllers
                     email = user.Email
                 }
             });
+        }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+        {
+            var token = await authService.ForgotPasswordAsync(dto);
+            if (token == null)
+            {
+                // To prevent email enumeration, we still return Ok or a generic message.
+                // However, for development, we can just return the token if it exists.
+                return Ok(new { message = "If the email is registered, a password reset link has been sent." });
+            }
+
+            // For development: return the token directly so frontend can use it.
+            return Ok(new { token });
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+        {
+            var (success, error) = await authService.ResetPasswordAsync(dto);
+            if (!success) return BadRequest(new { message = error ?? "Failed to reset password." });
+            return Ok(new { message = "Password reset successfully." });
         }
 
     }
