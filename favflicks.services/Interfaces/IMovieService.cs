@@ -1,4 +1,4 @@
-﻿using favflicks.data.Enums;
+using favflicks.data.Enums;
 using favflicks.data.Models;
 
 namespace favflicks.services.Interfaces
@@ -8,9 +8,11 @@ namespace favflicks.services.Interfaces
         // Local database operations
         Task<IEnumerable<Movie>> GetLocalMoviesAsync(string userId);
         Task<Movie?> GetMovieByIdAsync(int id, string userId);
-        Task<Movie> AddManualMovieAsync(Movie movie, string userId);
+        Task<Movie> AddManualMovieAsync(Movie movie, string userId, bool isAdmin);
         Task UpdateAsync(Movie movie);
         Task DeleteAsync(int id);
+        Task<IEnumerable<Movie>> GetPendingMoviesAsync();
+        Task ApproveMovieAsync(int id);
 
         // TMDB API operations
         Task<Movie> ImportFromTmdbAsync(int tmdbId, string userId);

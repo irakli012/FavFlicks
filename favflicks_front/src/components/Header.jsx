@@ -36,7 +36,12 @@ function Header() {
           <Link to="/tv-shows" className="text-white text-sm font-medium hover:text-[#e82626] transition-colors">TV Shows</Link>
           <Link to="/feed" className="text-white text-sm font-medium hover:text-[#e82626] transition-colors">Feed</Link>
           {isAuthenticated && (
-            <Link to="/profile" className="text-white text-sm font-medium hover:text-[#e82626] transition-colors">Profile</Link>
+            <>
+              <Link to="/profile" className="text-white text-sm font-medium hover:text-[#e82626] transition-colors">Profile</Link>
+              {currentUser?.roles?.includes('Admin') && (
+                <Link to="/admin" className="text-white text-sm font-medium hover:text-[#e82626] transition-colors">Admin Dashboard</Link>
+              )}
+            </>
           )}
         </nav>
       </div>
@@ -97,7 +102,12 @@ function Header() {
           <Link to="/tv-shows" onClick={closeMenu} className="text-white text-base font-medium p-2 hover:bg-[#2a1b1b] rounded-lg transition-colors">TV Shows</Link>
           <Link to="/feed" onClick={closeMenu} className="text-white text-base font-medium p-2 hover:bg-[#2a1b1b] rounded-lg transition-colors">Feed</Link>
           {isAuthenticated && (
-            <Link to="/profile" onClick={closeMenu} className="text-white text-base font-medium p-2 hover:bg-[#2a1b1b] rounded-lg transition-colors">Profile</Link>
+            <>
+              <Link to="/profile" onClick={closeMenu} className="text-white text-base font-medium p-2 hover:bg-[#2a1b1b] rounded-lg transition-colors">Profile</Link>
+              {currentUser?.roles?.includes('Admin') && (
+                <Link to="/admin" onClick={closeMenu} className="text-white text-base font-medium p-2 hover:bg-[#2a1b1b] rounded-lg transition-colors">Admin Dashboard</Link>
+              )}
+            </>
           )}
           <hr className="border-[#382929] my-2" />
           {isAuthenticated ? (

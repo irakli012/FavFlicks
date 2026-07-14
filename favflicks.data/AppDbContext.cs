@@ -174,7 +174,8 @@ namespace favflicks.data
                 m.Language,
                 m.ProductionCompany,
                 m.RuntimeMinutes,
-                m.Genre
+                m.Genre,
+                m.IsApproved
             }));
 
             // Seed movie-tag relationships

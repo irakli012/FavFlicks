@@ -1,4 +1,4 @@
-﻿using favflicks.data.Enums;
+using favflicks.data.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -62,6 +62,8 @@ namespace favflicks.data.Models
         public AppUser? AddedByUser { get; set; }
         public DateTime DateAdded { get; set; } = DateTime.UtcNow;
 
+        public bool IsApproved { get; set; } = true;
+
         public ICollection<Tag> Tags { get; set; } = new List<Tag>();
         public ICollection<MovieRating> Ratings { get; set; } = new List<MovieRating>();
         public ICollection<Comment> Comments { get; set; } = new List<Comment>();
@@ -71,7 +73,7 @@ namespace favflicks.data.Models
         public ICollection<ListMovie> ListMovies { get; set; } = new List<ListMovie>();
 
         [NotMapped]
-        public string TrailerUrl =>
+        public string? TrailerUrl =>
                     !string.IsNullOrEmpty(YouTubeTrailerId)
                         ? $"https://www.youtube.com/embed/{YouTubeTrailerId}?autoplay=1"
                         : null;

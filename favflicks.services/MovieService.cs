@@ -43,6 +43,7 @@ public class MovieService : IMovieService
     public async Task<IEnumerable<Movie>> GetLocalMoviesAsync(string userId)
     {
         return await _context.Movies
+            .Where(m => m.IsApproved)
             .Include(m => m.Tags)
             .Include(m => m.Comments)
             .Include(m => m.Ratings)
@@ -202,11 +203,12 @@ public class MovieService : IMovieService
             .FirstOrDefaultAsync();
     }
 
-    public async Task<Movie> AddManualMovieAsync(Movie movie, string userId)
+    public async Task<Movie> AddManualMovieAsync(Movie movie, string userId, bool isAdmin)
     {
         movie.Source = MovieSource.UserImport;
         movie.AddedByUserId = userId;
         movie.DateAdded = DateTime.UtcNow;
+        movie.IsApproved = isAdmin;
 
         await ProcessTags(movie);
         _context.Movies.Add(movie);
@@ -413,7 +415,7 @@ public class MovieService : IMovieService
         {
             // Get local results (case insensitive)
             var localResults = await _context.Movies
-                .Where(m => Microsoft.EntityFrameworkCore.EF.Functions.ILike(m.Name, $"%{query}%"))
+                .Where(m => m.IsApproved && Microsoft.EntityFrameworkCore.EF.Functions.ILike(m.Name, $"%{query}%"))
                 .Take(20)
                 .AsNoTracking()
                 .ToListAsync();
@@ -463,6 +465,24 @@ public class MovieService : IMovieService
             _logger.LogError(ex, "Error getting movie from source {Source} with ID {Id}",
                 source, id);
             return null;
+        }
+    }
+
+    public async Task<IEnumerable<Movie>> GetPendingMoviesAsync()
+    {
+        return await _context.Movies
+            .Where(m => !m.IsApproved)
+            .OrderByDescending(m => m.DateAdded)
+            .ToListAsync();
+    }
+
+    public async Task ApproveMovieAsync(int id)
+    {
+        var movie = await _context.Movies.FindAsync(id);
+        if (movie != null)
+        {
+            movie.IsApproved = true;
+            await _context.SaveChangesAsync();
         }
     }
 

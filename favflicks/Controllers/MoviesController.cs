@@ -103,6 +103,7 @@ namespace favflicks.Controllers
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var isAdmin = User.IsInRole("Admin");
                 if (string.IsNullOrEmpty(userId))
                     return Unauthorized();
 
@@ -111,7 +112,7 @@ namespace favflicks.Controllers
                 movie.AddedByUserId = userId;
                 movie.DateAdded = DateTime.UtcNow;
 
-                var createdMovie = await movieService.AddManualMovieAsync(movie, userId);
+                var createdMovie = await movieService.AddManualMovieAsync(movie, userId, isAdmin);
                 return CreatedAtAction(nameof(GetMovieById), new { id = createdMovie.Id }, createdMovie);
             }
             catch (Exception ex)
@@ -188,6 +189,30 @@ namespace favflicks.Controllers
                 logger.LogError(ex, "Error deleting movie");
                 return BadRequest(ex.Message);
             }
+        }
+
+        [HttpGet("pending")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<IEnumerable<Movie>>> GetPendingMovies()
+        {
+            var movies = await movieService.GetPendingMoviesAsync();
+            return Ok(movies);
+        }
+
+        [HttpPost("{id}/approve")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ApproveMovie(int id)
+        {
+            await movieService.ApproveMovieAsync(id);
+            return Ok();
+        }
+
+        [HttpPost("{id}/reject")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> RejectMovie(int id)
+        {
+            await movieService.DeleteAsync(id);
+            return Ok();
         }
     }
 }
