@@ -16,10 +16,14 @@
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
+
   .no-scrollbar {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
   }
+
   .glass-panel {
     @apply bg-[#2a1b1b]/60 backdrop-blur-md border border-[#ffffff1a] shadow-lg;
   }
