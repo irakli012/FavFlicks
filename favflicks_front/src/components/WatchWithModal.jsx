@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-const WatchWithModal = ({ isOpen, onClose, onAddSuccess }) => {
+const WatchWithModal = ({ isOpen, onClose, onAddSuccess, initialMovie = null }) => {
     const { currentUser } = useAuth();
     const [step, setStep] = useState(1); // 1: Search User, 2: Search Movie
     const [userQuery, setUserQuery] = useState('');
@@ -123,7 +123,11 @@ const WatchWithModal = ({ isOpen, onClose, onAddSuccess }) => {
 
                 {step === 1 && (
                     <div className="flex flex-col flex-1 overflow-hidden">
-                        <h3 className="text-lg text-white font-bold mb-2">Step 1: Select a Friend</h3>
+                        <h3 className="text-lg text-white font-bold mb-2">
+                          {initialMovie 
+                            ? `Watch "${initialMovie.title || initialMovie.name}" With a Friend` 
+                            : 'Step 1: Select a Friend'}
+                        </h3>
                         <form onSubmit={handleSearchUser} className="flex gap-2 mb-4">
                             <input 
                                 type="text" 
@@ -152,20 +156,42 @@ const WatchWithModal = ({ isOpen, onClose, onAddSuccess }) => {
                                 return (
                                 <div 
                                     key={friend.id} 
-                                    onClick={() => {
-                                        setSelectedUser({ id: friendId, userName: friendName });
-                                        setStep(2);
-                                        setError(null);
+                                    onClick={async () => {
+                                        if (initialMovie) {
+                                            setIsLoading(true);
+                                            setError(null);
+                                            try {
+                                                const movieId = initialMovie.localDbId || initialMovie.id;
+                                                await watchWithService.addWatchWith(friendId, movieId);
+                                                if (onAddSuccess) onAddSuccess();
+                                                onClose();
+                                            } catch (err) {
+                                                setError(err.message || 'Failed to send Watch With request.');
+                                            } finally {
+                                                setIsLoading(false);
+                                            }
+                                        } else {
+                                            setSelectedUser({ id: friendId, userName: friendName });
+                                            setStep(2);
+                                            setError(null);
+                                        }
                                     }}
-                                    className="flex items-center gap-4 p-3 rounded-xl border border-white/5 hover:border-red-500/50 hover:bg-white/5 cursor-pointer transition-all"
+                                    className="flex items-center justify-between p-3 rounded-xl border border-white/5 hover:border-red-500/50 hover:bg-white/5 cursor-pointer transition-all group"
                                 >
-                                    <div className="size-10 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-white font-bold uppercase">
-                                        {friendName.charAt(0)}
+                                    <div className="flex items-center gap-4">
+                                        <div className="size-10 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-white font-bold uppercase">
+                                            {friendName.charAt(0)}
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-white font-bold">{friendName}</span>
+                                            <span className="text-white/50 text-xs">Friends since {new Date(friend.createdAt).toLocaleDateString()}</span>
+                                        </div>
                                     </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-white font-bold">{friendName}</span>
-                                        <span className="text-white/50 text-xs">Friends since {new Date(friend.createdAt).toLocaleDateString()}</span>
-                                    </div>
+                                    {initialMovie && (
+                                        <span className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-bold group-hover:bg-indigo-500 transition-colors">
+                                            Invite
+                                        </span>
+                                    )}
                                 </div>
                                 );
                             })}

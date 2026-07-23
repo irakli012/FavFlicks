@@ -5,6 +5,7 @@ import commentService from '../services/commentService';
 import ratingService from '../services/ratingService';
 import watchlistService from '../services/watchlistService';
 import favoriteService from '../services/favoriteService';
+import WatchWithModal from './WatchWithModal';
 
 function MovieDetailsPage() {
   const { movieId } = useParams();
@@ -28,6 +29,7 @@ function MovieDetailsPage() {
   const [isUpdatingWatchlist, setIsUpdatingWatchlist] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [isUpdatingFavorite, setIsUpdatingFavorite] = useState(false);
+  const [showWatchWithModal, setShowWatchWithModal] = useState(false);
   const TMDB_API_KEY = '826e79d27b08eb6b49dee84d220f1dad';
 
   useEffect(() => {
@@ -424,6 +426,16 @@ function MovieDetailsPage() {
     }
   };
 
+  const handleOpenWatchWith = async () => {
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
+      return;
+    }
+    const dbId = await ensureLocalDbId();
+    if (!dbId) return;
+    setShowWatchWithModal(true);
+  };
+
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen bg-[#171212] text-white">Loading...</div>;
   }
@@ -465,6 +477,16 @@ function MovieDetailsPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3 self-start md:self-auto">
+          <button
+            onClick={handleOpenWatchWith}
+            className="px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg bg-indigo-600/20 text-indigo-400 border border-indigo-500/40 hover:bg-indigo-600/30"
+          >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+            </svg>
+            Watch With...
+          </button>
+
           <button
             onClick={handleToggleFavorite}
             disabled={isUpdatingFavorite}
@@ -751,6 +773,14 @@ function MovieDetailsPage() {
           </div>
         </div>
       )}
+      <WatchWithModal
+        isOpen={showWatchWithModal}
+        onClose={() => setShowWatchWithModal(false)}
+        initialMovie={movie}
+        onAddSuccess={() => {
+          alert(`Watch With request sent! Check your profile's 'Watch With' tab for status.`);
+        }}
+      />
     </div>
   );
 }
