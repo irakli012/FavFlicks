@@ -1,4 +1,4 @@
-﻿using favflicks.data;
+using favflicks.data;
 using favflicks.data.Models;
 using favflicks.services.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +20,12 @@ namespace favflicks.services
                 .ToListAsync();
         }
 
+        public async Task<Favorite?> GetByMovieAndUserAsync(int movieId, string userId)
+        {
+            return await context.Favorites
+                .FirstOrDefaultAsync(f => f.MovieId == movieId && f.UserId == userId);
+        }
+
         public async Task AddAsync(Favorite favorite)
         {
             //check if favorite already exists for that user
@@ -37,6 +43,18 @@ namespace favflicks.services
         {
             var existing = await context.Favorites
                 .FirstOrDefaultAsync(f => f.UserId == favorite.UserId && f.MovieId == favorite.MovieId);
+
+            if (existing != null)
+            {
+                context.Favorites.Remove(existing);
+                await context.SaveChangesAsync();
+            }
+        }
+
+        public async Task DeleteByMovieAndUserAsync(int movieId, string userId)
+        {
+            var existing = await context.Favorites
+                .FirstOrDefaultAsync(f => f.UserId == userId && f.MovieId == movieId);
 
             if (existing != null)
             {

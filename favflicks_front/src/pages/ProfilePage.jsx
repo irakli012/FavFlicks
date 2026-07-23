@@ -4,12 +4,18 @@ import { useAuth } from '../contexts/AuthContext';
 import watchWithService from '../services/watchWithService';
 import friendService from '../services/friendService';
 import userService from '../services/userService';
+import watchlistService from '../services/watchlistService';
+import favoriteService from '../services/favoriteService';
 import WatchWithModal from '../components/WatchWithModal';
 
 const ProfilePage = () => {
   const navigate = useNavigate();
   const { currentUser, isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState('watchlist');
+  const [realWatchlist, setRealWatchlist] = useState([]);
+  const [isLoadingWatchlist, setIsLoadingWatchlist] = useState(false);
+  const [realFavorites, setRealFavorites] = useState([]);
+  const [isLoadingFavorites, setIsLoadingFavorites] = useState(false);
   const [watchWithList, setWatchWithList] = useState([]);
   const [showWatchWithModal, setShowWatchWithModal] = useState(false);
   const [isLoadingWatchWith, setIsLoadingWatchWith] = useState(false);
@@ -24,12 +30,58 @@ const ProfilePage = () => {
   const [sentRequests, setSentRequests] = useState({});
 
   useEffect(() => {
-    if (activeTab === 'watch with') {
+    if (activeTab === 'watchlist') {
+      fetchWatchlist();
+    } else if (activeTab === 'favorites') {
+      fetchFavorites();
+    } else if (activeTab === 'watch with') {
       fetchWatchWiths();
     } else if (activeTab === 'friends') {
       fetchFriendsData();
     }
   }, [activeTab]);
+
+  const fetchWatchlist = async () => {
+    setIsLoadingWatchlist(true);
+    try {
+      const data = await watchlistService.getWatchlist();
+      setRealWatchlist(data);
+    } catch (err) {
+      console.error("Failed to load watchlist", err);
+    } finally {
+      setIsLoadingWatchlist(false);
+    }
+  };
+
+  const handleRemoveFromWatchlist = async (movieId) => {
+    try {
+      await watchlistService.removeFromWatchlist(movieId);
+      setRealWatchlist(prev => prev.filter(item => item.movieId !== movieId));
+    } catch (err) {
+      console.error("Failed to remove from watchlist", err);
+    }
+  };
+
+  const fetchFavorites = async () => {
+    setIsLoadingFavorites(true);
+    try {
+      const data = await favoriteService.getFavorites();
+      setRealFavorites(data);
+    } catch (err) {
+      console.error("Failed to load favorites", err);
+    } finally {
+      setIsLoadingFavorites(false);
+    }
+  };
+
+  const handleRemoveFromFavorites = async (movieId) => {
+    try {
+      await favoriteService.removeFavorite(movieId);
+      setRealFavorites(prev => prev.filter(item => item.movieId !== movieId));
+    } catch (err) {
+      console.error("Failed to remove from favorites", err);
+    }
+  };
 
   const fetchWatchWiths = async () => {
     setIsLoadingWatchWith(true);
@@ -205,53 +257,126 @@ const ProfilePage = () => {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-slate-900 dark:text-white text-2xl font-bold tracking-tight">Watch Later</h2>
-              <a href="#" className="text-red-500 font-bold text-sm hover:underline">View All (18)</a>
+              <span className="text-red-500 font-bold text-sm">({realWatchlist.length} movies)</span>
             </div>
 
-            {/* Movie Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-              {profileData.watchlist.map(movie => (
-                <div key={movie.id} className="group relative flex flex-col gap-3">
-                  <div className="relative aspect-[2/3] w-full rounded-xl overflow-hidden bg-surface-dark shadow-lg ring-1 ring-white/10">
-                    <div 
-                      className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
-                      style={{backgroundImage: `url('${movie.image}')`}}
-                    ></div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
-                      <button className="w-full bg-red-600 text-white py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 mb-2 hover:bg-red-700 transition-colors">
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
-                        </svg>
-                        Mark Watched
-                      </button>
+            {isLoadingWatchlist ? (
+              <div className="text-center py-12">
+                <p className="text-slate-500 dark:text-[#b99d9e]">Loading watchlist...</p>
+              </div>
+            ) : realWatchlist.length === 0 ? (
+              <div className="text-center py-12 border border-white/5 rounded-2xl bg-surface-dark/50">
+                <p className="text-slate-500 dark:text-[#b99d9e]">Your watchlist is empty.</p>
+                <p className="text-slate-500 dark:text-[#b99d9e] text-sm mt-1">Browse movies and click "Add to Watch Later" to save them!</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                {realWatchlist.map(item => {
+                  const m = item.movie;
+                  if (!m) return null;
+                  const year = m.releaseDate ? new Date(m.releaseDate).getFullYear() : 'N/A';
+                  return (
+                    <div key={item.id} className="group relative flex flex-col gap-3">
+                      <div className="relative aspect-[2/3] w-full rounded-xl overflow-hidden bg-surface-dark shadow-lg ring-1 ring-white/10 cursor-pointer" onClick={() => navigate(`/movie/${m.id}`)}>
+                        <div 
+                          className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
+                          style={{backgroundImage: `url('${m.imagePath}')`}}
+                        ></div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
+                          <button onClick={(e) => { e.stopPropagation(); navigate(`/movie/${m.id}`); }} className="w-full bg-red-600 text-white py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 hover:bg-red-700 transition-colors">
+                            View Movie
+                          </button>
+                        </div>
+                        <div className="absolute top-2 right-2 flex flex-col gap-2 z-10">
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveFromWatchlist(m.id);
+                            }}
+                            className="size-8 rounded-lg bg-black/60 backdrop-blur-md text-white flex items-center justify-center hover:bg-red-600 transition-colors"
+                            title="Remove from watchlist"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                      <div className="flex flex-col cursor-pointer" onClick={() => navigate(`/movie/${m.id}`)}>
+                        <h3 className="text-slate-900 dark:text-white font-bold text-sm line-clamp-1 group-hover:text-red-500 transition-colors">{m.name}</h3>
+                        <p className="text-slate-500 dark:text-[#b99d9e] text-xs">{year} • {m.genre || 'Movie'}</p>
+                      </div>
                     </div>
-                    <div className="absolute top-2 right-2 flex flex-col gap-2">
-                      <button className="size-8 rounded-lg bg-black/60 backdrop-blur-md text-white flex items-center justify-center hover:bg-red-600 transition-colors">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    </div>
-                    <div className="absolute top-2 left-2 px-2 py-1 rounded bg-yellow-500 text-black text-[10px] font-black flex items-center gap-1">
-                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                      </svg>
-                      {movie.rating}
-                    </div>
-                  </div>
-                  <div className="flex flex-col">
-                    <h3 className="text-slate-900 dark:text-white font-bold text-sm line-clamp-1 group-hover:text-red-500 transition-colors">{movie.title}</h3>
-                    <p className="text-slate-500 dark:text-[#b99d9e] text-xs">{movie.year} • {movie.genre}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
         {activeTab === 'favorites' && (
-          <div className="text-center py-12">
-            <p className="text-slate-500 dark:text-[#b99d9e]">Your favorite movies will appear here</p>
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-slate-900 dark:text-white text-2xl font-bold tracking-tight flex items-center gap-2">
+                Favorites
+                <svg className="w-5 h-5 text-red-500 fill-red-500" viewBox="0 0 24 24">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+              </h2>
+              <span className="text-red-500 font-bold text-sm">({realFavorites.length} movies)</span>
+            </div>
+
+            {isLoadingFavorites ? (
+              <div className="text-center py-12">
+                <p className="text-slate-500 dark:text-[#b99d9e]">Loading favorites...</p>
+              </div>
+            ) : realFavorites.length === 0 ? (
+              <div className="text-center py-12 border border-white/5 rounded-2xl bg-surface-dark/50">
+                <p className="text-slate-500 dark:text-[#b99d9e]">Your favorites list is empty.</p>
+                <p className="text-slate-500 dark:text-[#b99d9e] text-sm mt-1">Browse movies and click "Favorite" to save your top picks!</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                {realFavorites.map(item => {
+                  const m = item.movie;
+                  if (!m) return null;
+                  const year = m.releaseDate ? new Date(m.releaseDate).getFullYear() : 'N/A';
+                  return (
+                    <div key={item.id} className="group relative flex flex-col gap-3">
+                      <div className="relative aspect-[2/3] w-full rounded-xl overflow-hidden bg-surface-dark shadow-lg ring-1 ring-white/10 cursor-pointer" onClick={() => navigate(`/movie/${m.id}`)}>
+                        <div 
+                          className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
+                          style={{backgroundImage: `url('${m.imagePath}')`}}
+                        ></div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
+                          <button onClick={(e) => { e.stopPropagation(); navigate(`/movie/${m.id}`); }} className="w-full bg-red-600 text-white py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 hover:bg-red-700 transition-colors">
+                            View Movie
+                          </button>
+                        </div>
+                        <div className="absolute top-2 right-2 flex flex-col gap-2 z-10">
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveFromFavorites(m.id);
+                            }}
+                            className="size-8 rounded-lg bg-black/60 backdrop-blur-md text-white flex items-center justify-center hover:bg-red-600 transition-colors"
+                            title="Remove from favorites"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                      <div className="flex flex-col cursor-pointer" onClick={() => navigate(`/movie/${m.id}`)}>
+                        <h3 className="text-slate-900 dark:text-white font-bold text-sm line-clamp-1 group-hover:text-red-500 transition-colors">{m.name}</h3>
+                        <p className="text-slate-500 dark:text-[#b99d9e] text-xs">{year} • {m.genre || 'Movie'}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 

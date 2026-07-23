@@ -3,6 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import commentService from '../services/commentService';
 import ratingService from '../services/ratingService';
+import watchlistService from '../services/watchlistService';
+import favoriteService from '../services/favoriteService';
 
 function MovieDetailsPage() {
   const { movieId } = useParams();
@@ -22,6 +24,10 @@ function MovieDetailsPage() {
   const [currentUserRating, setCurrentUserRating] = useState(0);
   const [commentToDelete, setCommentToDelete] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [isInWatchlist, setIsInWatchlist] = useState(false);
+  const [isUpdatingWatchlist, setIsUpdatingWatchlist] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [isUpdatingFavorite, setIsUpdatingFavorite] = useState(false);
   const TMDB_API_KEY = '826e79d27b08eb6b49dee84d220f1dad';
 
   useEffect(() => {
@@ -210,12 +216,34 @@ function MovieDetailsPage() {
     }
   }, [movieId]);
 
-  // Fetch comments and ratings when localDbId is available
+  // Fetch comments, ratings, watchlist status, and favorite status when localDbId is available
   useEffect(() => {
     if (movie?.localDbId) {
       loadCommentsAndRatings(movie.localDbId);
+      if (isAuthenticated) {
+        checkWatchlistStatus(movie.localDbId);
+        checkFavoriteStatus(movie.localDbId);
+      }
     }
   }, [movie?.localDbId, isAuthenticated]);
+
+  const checkWatchlistStatus = async (localDbId) => {
+    try {
+      const res = await watchlistService.checkWatchlist(localDbId);
+      setIsInWatchlist(res.inWatchlist);
+    } catch (e) {
+      console.error("Error checking watchlist status:", e);
+    }
+  };
+
+  const checkFavoriteStatus = async (localDbId) => {
+    try {
+      const res = await favoriteService.checkFavorite(localDbId);
+      setIsFavorite(res.isFavorite);
+    } catch (e) {
+      console.error("Error checking favorite status:", e);
+    }
+  };
 
   const loadCommentsAndRatings = async (localDbId) => {
     try {
@@ -338,6 +366,64 @@ function MovieDetailsPage() {
     }
   };
 
+  const handleToggleWatchlist = async () => {
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
+      return;
+    }
+    const dbId = await ensureLocalDbId();
+    if (!dbId) return;
+
+    setIsUpdatingWatchlist(true);
+    try {
+      if (isInWatchlist) {
+        await watchlistService.removeFromWatchlist(dbId);
+        setIsInWatchlist(false);
+      } else {
+        await watchlistService.addToWatchlist(dbId);
+        setIsInWatchlist(true);
+      }
+    } catch (err) {
+      console.error("Watchlist update failed:", err);
+      if (err.message === '401_UNAUTHORIZED') {
+        setShowLoginModal(true);
+      } else {
+        alert('Failed to update watchlist');
+      }
+    } finally {
+      setIsUpdatingWatchlist(false);
+    }
+  };
+
+  const handleToggleFavorite = async () => {
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
+      return;
+    }
+    const dbId = await ensureLocalDbId();
+    if (!dbId) return;
+
+    setIsUpdatingFavorite(true);
+    try {
+      if (isFavorite) {
+        await favoriteService.removeFavorite(dbId);
+        setIsFavorite(false);
+      } else {
+        await favoriteService.addFavorite(dbId);
+        setIsFavorite(true);
+      }
+    } catch (err) {
+      console.error("Favorite update failed:", err);
+      if (err.message === '401_UNAUTHORIZED') {
+        setShowLoginModal(true);
+      } else {
+        alert('Failed to update favorites');
+      }
+    } finally {
+      setIsUpdatingFavorite(false);
+    }
+  };
+
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen bg-[#171212] text-white">Loading...</div>;
   }
@@ -361,19 +447,64 @@ function MovieDetailsPage() {
       </div>
 
       {/* Movie Header */}
-      <div className="px-4 md:px-10 lg:px-40 py-5">
-        <h1 className="text-3xl md:text-4xl font-bold">{movie.title}</h1>
-        <div className="flex flex-wrap items-center mt-2 text-gray-400 gap-x-2">
-          <span>{movie.releaseYear}</span>
-          {movie.runtimeFormatted && <span className="mx-2">•</span>}
-          <span>{movie.runtimeFormatted}</span>
-          {movie.averageRating > 0 && <span className="mx-2">•</span>}
-          {movie.averageRating > 0 && (
-            <span className="flex items-center">
-              {movie.averageRating.toFixed(1)}
-              <span className="ml-1 text-yellow-400">★</span>
-            </span>
-          )}
+      <div className="px-4 md:px-10 lg:px-40 py-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl md:text-4xl font-bold">{movie.title}</h1>
+          <div className="flex flex-wrap items-center mt-2 text-gray-400 gap-x-2">
+            <span>{movie.releaseYear}</span>
+            {movie.runtimeFormatted && <span className="mx-2">•</span>}
+            <span>{movie.runtimeFormatted}</span>
+            {movie.averageRating > 0 && <span className="mx-2">•</span>}
+            {movie.averageRating > 0 && (
+              <span className="flex items-center">
+                {movie.averageRating.toFixed(1)}
+                <span className="ml-1 text-yellow-400">★</span>
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 self-start md:self-auto">
+          <button
+            onClick={handleToggleFavorite}
+            disabled={isUpdatingFavorite}
+            className={`px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg ${
+              isFavorite
+                ? 'bg-red-500/20 text-red-400 border border-red-500/40 hover:bg-red-500/30'
+                : 'bg-white/10 text-white hover:bg-white/20 border border-white/10'
+            }`}
+          >
+            <svg className={`w-4 h-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'fill-none stroke-currentColor'}`} viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+            {isFavorite ? 'Favorited' : 'Favorite'}
+          </button>
+
+          <button
+            onClick={handleToggleWatchlist}
+            disabled={isUpdatingWatchlist}
+            className={`px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg ${
+              isInWatchlist
+                ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/40 hover:bg-emerald-600/30'
+                : 'bg-red-600 text-white hover:bg-red-700 shadow-red-500/20'
+            }`}
+          >
+            {isInWatchlist ? (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+                In Watchlist
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                </svg>
+                Add to Watch Later
+              </>
+            )}
+          </button>
         </div>
       </div>
 
