@@ -28,6 +28,7 @@ builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IWatchWithService, WatchWithService>();
 builder.Services.AddScoped<IFriendshipService, FriendshipService>();
 builder.Services.AddScoped<IFavoriteService, FavoriteService>();
+builder.Services.AddScoped<IWatchLaterService, WatchLaterService>();
 builder.Services.AddScoped<IRatingService, RatingService>();
 builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
