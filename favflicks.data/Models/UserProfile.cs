@@ -21,12 +21,10 @@ namespace favflicks.data.Models
 
         public DateTime JoinDate { get; set; } = DateTime.UtcNow;
 
-        [Url]
-        [StringLength(500)]
+        [StringLength(2000)]
         public string? ProfilePictureUrl { get; set; }
 
-        [Url]
-        [StringLength(500)]
+        [StringLength(2000)]
         public string? CoverImageUrl { get; set; }
     }
 }

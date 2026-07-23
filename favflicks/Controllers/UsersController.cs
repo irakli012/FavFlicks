@@ -29,5 +29,90 @@ namespace favflicks.Controllers
 
             return Ok(users);
         }
+
+        [HttpGet("profile")]
+        [Authorize]
+        public async Task<IActionResult> GetProfile()
+        {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var user = await context.Users
+                .Include(u => u.Profile)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+                return NotFound();
+
+            if (user.Profile == null)
+            {
+                user.Profile = new favflicks.data.Models.UserProfile
+                {
+                    UserId = userId,
+                    Bio = "Binging the classics and hunting for the next indie gem. 🍿",
+                    Location = "Tbilisi, Georgia",
+                    JoinDate = DateTime.UtcNow
+                };
+                context.Set<favflicks.data.Models.UserProfile>().Add(user.Profile);
+                await context.SaveChangesAsync();
+            }
+
+            return Ok(new
+            {
+                userId = user.Id,
+                userName = user.UserName,
+                email = user.Email,
+                bio = user.Profile.Bio,
+                location = user.Profile.Location,
+                joinDate = user.Profile.JoinDate,
+                profilePictureUrl = user.Profile.ProfilePictureUrl,
+                coverImageUrl = user.Profile.CoverImageUrl
+            });
+        }
+
+        [HttpPut("profile")]
+        [Authorize]
+        public async Task<IActionResult> UpdateProfile([FromBody] favflicks.data.Dtos.UpdateProfileDto dto)
+        {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var user = await context.Users
+                .Include(u => u.Profile)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+                return NotFound();
+
+            if (user.Profile == null)
+            {
+                user.Profile = new favflicks.data.Models.UserProfile
+                {
+                    UserId = userId,
+                    JoinDate = DateTime.UtcNow
+                };
+                context.Set<favflicks.data.Models.UserProfile>().Add(user.Profile);
+            }
+
+            user.Profile.Bio = dto.Bio;
+            user.Profile.Location = dto.Location;
+            user.Profile.ProfilePictureUrl = dto.ProfilePictureUrl;
+
+            await context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                userId = user.Id,
+                userName = user.UserName,
+                email = user.Email,
+                bio = user.Profile.Bio,
+                location = user.Profile.Location,
+                joinDate = user.Profile.JoinDate,
+                profilePictureUrl = user.Profile.ProfilePictureUrl,
+                coverImageUrl = user.Profile.CoverImageUrl
+            });
+        }
     }
 }

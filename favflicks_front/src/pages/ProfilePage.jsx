@@ -7,10 +7,15 @@ import userService from '../services/userService';
 import watchlistService from '../services/watchlistService';
 import favoriteService from '../services/favoriteService';
 import WatchWithModal from '../components/WatchWithModal';
+import EditProfileModal from '../components/EditProfileModal';
+import { getAvatarUrl, getRandomAvatarId } from '../utils/avatars';
 
 const ProfilePage = () => {
   const navigate = useNavigate();
   const { currentUser, isAuthenticated } = useAuth();
+  const [userProfile, setUserProfile] = useState(null);
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [activeTab, setActiveTab] = useState('watchlist');
   const [realWatchlist, setRealWatchlist] = useState([]);
   const [isLoadingWatchlist, setIsLoadingWatchlist] = useState(false);
@@ -30,6 +35,12 @@ const ProfilePage = () => {
   const [sentRequests, setSentRequests] = useState({});
 
   useEffect(() => {
+    if (isAuthenticated) {
+      fetchUserProfile();
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
     if (activeTab === 'watchlist') {
       fetchWatchlist();
     } else if (activeTab === 'favorites') {
@@ -40,6 +51,29 @@ const ProfilePage = () => {
       fetchFriendsData();
     }
   }, [activeTab]);
+
+  const fetchUserProfile = async () => {
+    setIsLoadingProfile(true);
+    try {
+      const data = await userService.getProfile();
+      if (!data.profilePictureUrl) {
+        data.profilePictureUrl = getRandomAvatarId();
+      }
+      setUserProfile(data);
+    } catch (err) {
+      console.error("Failed to load profile", err);
+    } finally {
+      setIsLoadingProfile(false);
+    }
+  };
+
+  const handleSaveProfile = async (updatedData) => {
+    const updated = await userService.updateProfile(updatedData);
+    setUserProfile(prev => ({
+      ...prev,
+      ...updated
+    }));
+  };
 
   const fetchWatchlist = async () => {
     setIsLoadingWatchlist(true);
@@ -172,29 +206,37 @@ const ProfilePage = () => {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div className="flex flex-col md:flex-row gap-6 items-center md:items-end">
                 {/* Profile Avatar */}
-                <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-32 border-4 border-background-dark shadow-2xl" style={{backgroundImage: `url('https://lh3.googleusercontent.com/aida-public/AB6AXuA4B725K-lqiSKWiBFFYz2sauPlmWUQEOiptSscXio1Lp3qIhyLFxR6rZxz0tA_sjBXD-lb2vAve-kihsgrLcGJ1apXDcB7GPWRt8ZzASjQx94t27807_YE7vaXHB74TVXqQpWTNCFidbI4epCEo8ZS6AYI91brWLnGUGZMLny3_th-ZrswDrlbrMO6wEmPwE0t47dh-zf8fgWc9DEfHTdeq79uqHSQhjQuLWgm5qcQRVva1DtvuaEOFAasyRSV2e1No-L5t5_FRzWC')`}}></div>
+                <div className="aspect-square rounded-full size-32 border-4 border-background-dark shadow-2xl overflow-hidden bg-surface-dark flex items-center justify-center">
+                  <img 
+                    src={getAvatarUrl(userProfile?.profilePictureUrl)} 
+                    alt="User Avatar"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
                 
                 {/* Profile Info */}
                 <div className="flex flex-col text-center md:text-left mb-2">
                   <h1 className="text-white text-3xl font-extrabold tracking-tight flex items-center justify-center md:justify-start gap-2">
-                    {profileData.name}
+                    {userProfile?.userName || currentUser?.userName || 'User'}
                     <svg className="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
                     </svg>
                   </h1>
-                  <p className="text-[#b99d9e] text-lg font-medium mt-1">{profileData.bio}</p>
+                  <p className="text-[#b99d9e] text-lg font-medium mt-1">
+                    {userProfile?.bio || 'Binging the classics and hunting for the next indie gem. 🍿'}
+                  </p>
                   <div className="flex items-center justify-center md:justify-start gap-4 mt-2 text-[#b99d9e] text-sm flex-wrap">
                     <span className="flex items-center gap-1">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       </svg>
-                      {profileData.location}
+                      {userProfile?.location || 'Tbilisi, Georgia'}
                     </span>
                     <span className="flex items-center gap-1">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
-                      Joined {profileData.joinDate}
+                      Joined {userProfile?.joinDate ? new Date(userProfile.joinDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'May 2021'}
                     </span>
                   </div>
                 </div>
@@ -202,7 +244,10 @@ const ProfilePage = () => {
               
               {/* Action Buttons */}
               <div className="flex gap-3 w-full md:w-auto">
-                <button className="flex-1 md:flex-none min-w-[120px] cursor-pointer items-center justify-center rounded-xl h-11 px-6 bg-border-dark text-white text-sm font-bold hover:bg-slate-700 transition-colors">
+                <button 
+                  onClick={() => setShowEditProfileModal(true)}
+                  className="flex-1 md:flex-none min-w-[120px] cursor-pointer items-center justify-center rounded-xl h-11 px-6 bg-border-dark text-white text-sm font-bold hover:bg-slate-700 transition-colors"
+                >
                   Edit Profile
                 </button>
                 <button className="flex-1 md:flex-none min-w-[120px] cursor-pointer items-center justify-center rounded-xl h-11 px-6 bg-red-600 text-white text-sm font-bold hover:bg-red-700 transition-colors shadow-lg shadow-red-500/20">
@@ -685,6 +730,13 @@ const ProfilePage = () => {
         isOpen={showWatchWithModal} 
         onClose={() => setShowWatchWithModal(false)}
         onAddSuccess={fetchWatchWiths}
+      />
+
+      <EditProfileModal
+        isOpen={showEditProfileModal}
+        onClose={() => setShowEditProfileModal(false)}
+        currentProfile={userProfile}
+        onSaveSuccess={handleSaveProfile}
       />
     </div>
   );
