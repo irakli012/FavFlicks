@@ -3,8 +3,10 @@ import { BrowserRouter as Router, Routes, Route, useLocation, Link } from 'react
 import { useAuth } from './contexts/AuthContext';
 import Header from './components/Header';
 import SearchBar from './components/SearchBar';
-import HighestRatedSlider from './components/HighestRatedSlider';
 import PopularMoviesSection from './components/PopularMoviesSection';
+import HeroSpotlight from './components/HeroSpotlight';
+import TvSeriesSlider from './components/TvSeriesSlider';
+import WatchWithModal from './components/WatchWithModal';
 import MovieDetailsPage from './components/MovieDetailsPage';
 import ToggleSwitch from './components/ToggleSwitch';
 import LoginPage from './pages/LoginPage';
@@ -34,6 +36,11 @@ function App() {
   // State for Popular Movies Pagination
   const [popularCurrentPage, setPopularCurrentPage] = useState(1);
 
+  const [tvShows, setTvShows] = useState([]);
+  const [loadingTv, setLoadingTv] = useState(false);
+  const [selectedWatchWithItem, setSelectedWatchWithItem] = useState(null);
+  const [showWatchWithModal, setShowWatchWithModal] = useState(false);
+
   const fetchMovies = async () => {
     try {
       setLoading(true);
@@ -52,8 +59,24 @@ function App() {
     }
   };
 
+  const fetchTvShows = async () => {
+    try {
+      setLoadingTv(true);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/Movies/tv/popular`);
+      if (response.ok) {
+        const data = await response.json();
+        setTvShows(data);
+      }
+    } catch (err) {
+      console.error("Error fetching TV shows:", err);
+    } finally {
+      setLoadingTv(false);
+    }
+  };
+
   useEffect(() => {
     fetchMovies();
+    fetchTvShows();
   }, []);
 
   // Debounce search
@@ -97,10 +120,15 @@ function App() {
     }
   };
 
+  const spotlightItems = movies.filter(m => m.backdropPath || m.imagePath).slice(0, 5);
+
   return (
     <Router>
       <AppContent 
         movies={movies}
+        tvShows={tvShows}
+        loadingTv={loadingTv}
+        spotlightItems={spotlightItems}
         loading={loading}
         error={error}
         popularCurrentPage={popularCurrentPage}
@@ -112,6 +140,10 @@ function App() {
         onSearchChange={handleSearchChange}
         searchResults={searchResults}
         isSearching={isSearching}
+        selectedWatchWithItem={selectedWatchWithItem}
+        setSelectedWatchWithItem={setSelectedWatchWithItem}
+        showWatchWithModal={showWatchWithModal}
+        setShowWatchWithModal={setShowWatchWithModal}
       />
     </Router>
   );
@@ -119,6 +151,9 @@ function App() {
 
 function AppContent({ 
   movies, 
+  tvShows,
+  loadingTv,
+  spotlightItems,
   loading, 
   error, 
   popularCurrentPage, 
@@ -129,7 +164,11 @@ function AppContent({
   searchTerm,
   onSearchChange,
   searchResults,
-  isSearching
+  isSearching,
+  selectedWatchWithItem,
+  setSelectedWatchWithItem,
+  showWatchWithModal,
+  setShowWatchWithModal
 }) {
   const { isAuthenticated } = useAuth();
   
@@ -201,16 +240,27 @@ function AppContent({
                     </div>
                   ) : (
                     <>
-                      <HighestRatedSlider movies={movies} loading={loading} error={error} />
+                      <HeroSpotlight 
+                        items={spotlightItems} 
+                        onWatchWithClick={(item) => {
+                          setSelectedWatchWithItem(item);
+                          setShowWatchWithModal(true);
+                        }}
+                      />
+                      
+                      <TvSeriesSlider tvShows={tvShows} loading={loadingTv} />
+                      
                       <PopularMoviesSection
                         movies={movies}
                         loading={loading}
                         error={error}
-                        popularCurrentPage={popularCurrentPage}
-                        totalPopularPages={totalPopularPages}
-                        paginatePopular={paginatePopular}
-                        currentPopularMovies={currentPopularMovies}
-                        MOVIES_PER_ROW={MOVIES_PER_ROW}
+                      />
+
+                      <WatchWithModal
+                        isOpen={showWatchWithModal}
+                        onClose={() => setShowWatchWithModal(false)}
+                        initialMovie={selectedWatchWithItem}
+                        onAddSuccess={() => alert('Watch With request sent!')}
                       />
                     </>
                   )}
