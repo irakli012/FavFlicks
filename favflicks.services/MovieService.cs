@@ -178,6 +178,84 @@ public class MovieService : IMovieService
         }
     }
 
+    public async Task<IEnumerable<Movie>> GetPopularTmdbTvShowsAsync()
+    {
+        using var httpClient = _httpClientFactory.CreateClient("TMDB");
+
+        try
+        {
+            var tvShows = new List<Movie>();
+            var tasks = new List<Task<HttpResponseMessage>>();
+
+            for (int i = 1; i <= 3; i++)
+            {
+                var page = i;
+                tasks.Add(_retryPolicy.ExecuteAsync(() =>
+                    httpClient.GetAsync($"tv/popular?api_key={_tmdbSettings.ApiKey}&page={page}")));
+            }
+
+            var responses = await Task.WhenAll(tasks);
+
+            foreach (var response in responses)
+            {
+                if (!response.IsSuccessStatusCode)
+                    continue;
+
+                var content = await response.Content.ReadAsStringAsync();
+                using JsonDocument doc = JsonDocument.Parse(content);
+                var root = doc.RootElement;
+
+                if (!root.TryGetProperty("results", out var resultsElement))
+                    continue;
+
+                foreach (var result in resultsElement.EnumerateArray())
+                {
+                    try
+                    {
+                        var tvName = result.TryGetProperty("name", out var n) ? n.GetString() : "Untitled Series";
+                        var tvShow = new Movie
+                        {
+                            Source = MovieSource.TMDB,
+                            ExternalId = $"tv_{result.GetProperty("id").GetInt32()}",
+                            Name = tvName ?? "Untitled Series",
+                            Description = result.TryGetProperty("overview", out var ov) ? ov.GetString() : "",
+                            ImagePath = result.TryGetProperty("poster_path", out var p) && p.GetString() != null
+                                ? $"{_tmdbSettings.ImageBaseUrl}w500{p.GetString()}"
+                                : null,
+                            BackdropPath = result.TryGetProperty("backdrop_path", out var b) && b.GetString() != null
+                                ? $"{_tmdbSettings.ImageBaseUrl}original{b.GetString()}"
+                                : null,
+                            ReleaseDate = DateTime.TryParse(result.TryGetProperty("first_air_date", out var rd) ? rd.GetString() : null, out var date) 
+                                ? DateTime.SpecifyKind(date, DateTimeKind.Utc) 
+                                : null,
+                            AverageRating = (double)(result.TryGetProperty("vote_average", out var va) ? va.GetDecimal() : 0),
+                            ExternalUrl = $"https://www.themoviedb.org/tv/{result.GetProperty("id").GetInt32()}",
+                            Genre = "TV Series",
+                            Tags = new List<Tag>(),
+                            Ratings = new List<MovieRating>(),
+                            Comments = new List<Comment>(),
+                            Favorites = new List<Favorite>(),
+                            Watchlists = new List<WatchList>()
+                        };
+                        tvShows.Add(tvShow);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Error parsing TMDB TV result");
+                    }
+                }
+            }
+
+            _logger.LogInformation("Successfully parsed {Count} TMDB TV shows", tvShows.Count);
+            return tvShows.DistinctBy(m => m.ExternalId).ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching popular TMDB TV shows");
+            return Enumerable.Empty<Movie>();
+        }
+    }
+
     public async Task<Movie?> GetMovieByIdAsync(int id, string userId)
     {
         return await _context.Movies

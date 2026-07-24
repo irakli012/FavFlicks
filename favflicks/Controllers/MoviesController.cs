@@ -44,6 +44,21 @@ namespace favflicks.Controllers
             }
         }
 
+        [HttpGet("tv/popular")]
+        public async Task<ActionResult<IEnumerable<Movie>>> GetPopularTvShows()
+        {
+            try
+            {
+                var tvShows = await movieService.GetPopularTmdbTvShowsAsync();
+                return Ok(tvShows);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error getting popular TV shows");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
         [HttpGet("search")]
         public async Task<ActionResult<IEnumerable<Movie>>> SearchMovies([FromQuery] string query)
         {

@@ -18,6 +18,7 @@ namespace favflicks.services.Interfaces
         Task<Movie> ImportFromTmdbAsync(int tmdbId, string userId);
         Task<IEnumerable<Movie>> SearchTmdbMoviesAsync(string query);
         Task<IEnumerable<Movie>> GetPopularTmdbMoviesAsync();
+        Task<IEnumerable<Movie>> GetPopularTmdbTvShowsAsync();
 
         // Combined operations
         Task<IEnumerable<Movie>> GetAllMoviesAsync(string userId, bool includeTmdb = false);
