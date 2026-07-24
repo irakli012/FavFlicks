@@ -151,35 +151,41 @@ namespace favflicks.data
             modelBuilder.Entity<AppUser>().HasData(SeedData.GetDefaultUser());
             modelBuilder.Entity<Tag>().HasData(SeedData.GetPredefinedTags());
 
-            // Seed movies without navigation properties
-            modelBuilder.Entity<Movie>().HasData(SeedData.GetPredefinedMovies().Select(m => new
+            var predefinedMovies = SeedData.GetPredefinedMovies();
+            if (predefinedMovies.Any())
             {
-                m.Id,
-                m.Name,
-                m.Description,
-                m.ImagePath,
-                m.AddedByUserId,
-                m.Source,
-                m.DateAdded,
-                m.YouTubeTrailerId,
-                m.BackdropPath,
-                m.ExternalId,
-                m.ExternalUrl,
-                m.ImdbUrl,
-                m.Director,
-                m.Writers,
-                m.Stars,
-                m.ReleaseDate,
-                m.CountryOfOrigin,
-                m.Language,
-                m.ProductionCompany,
-                m.RuntimeMinutes,
-                m.Genre,
-                m.IsApproved
-            }));
+                modelBuilder.Entity<Movie>().HasData(predefinedMovies.Select(m => new
+                {
+                    m.Id,
+                    m.Name,
+                    m.Description,
+                    m.ImagePath,
+                    m.AddedByUserId,
+                    m.Source,
+                    m.DateAdded,
+                    m.YouTubeTrailerId,
+                    m.BackdropPath,
+                    m.ExternalId,
+                    m.ExternalUrl,
+                    m.ImdbUrl,
+                    m.Director,
+                    m.Writers,
+                    m.Stars,
+                    m.ReleaseDate,
+                    m.CountryOfOrigin,
+                    m.Language,
+                    m.ProductionCompany,
+                    m.RuntimeMinutes,
+                    m.Genre,
+                    m.IsApproved
+                }));
+            }
 
-            // Seed movie-tag relationships
-            modelBuilder.Entity("MovieTag").HasData(SeedData.GetMovieTagRelations());
+            var movieTagRelations = SeedData.GetMovieTagRelations();
+            if (movieTagRelations.Any())
+            {
+                modelBuilder.Entity("MovieTag").HasData(movieTagRelations);
+            }
         }
     }
 }
