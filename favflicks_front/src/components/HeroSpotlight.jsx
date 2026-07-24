@@ -18,6 +18,8 @@ const HeroSpotlight = ({ items = [], onWatchWithClick }) => {
   const currentItem = items[currentIndex];
   const backdrop = currentItem.backdropPath || currentItem.imagePath || 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1200';
 
+  const targetId = currentItem.id || currentItem.externalId;
+
   return (
     <div className="relative w-full h-[460px] md:h-[520px] rounded-3xl overflow-hidden mb-10 shadow-2xl group border border-white/10">
       {/* Background Image with Dark Vignette */}
@@ -61,7 +63,7 @@ const HeroSpotlight = ({ items = [], onWatchWithClick }) => {
         {/* Action Buttons */}
         <div className="flex items-center gap-4 flex-wrap">
           <Link
-            to={currentItem.id ? `/movie/${currentItem.id}` : '#'}
+            to={targetId ? `/movie/${targetId}` : '#'}
             className="px-6 py-3 rounded-xl bg-[#e82626] hover:bg-[#ff3b3b] text-white text-sm font-bold transition-all shadow-lg shadow-red-500/30 hover:scale-105 flex items-center gap-2"
           >
             <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">

@@ -7,6 +7,7 @@ import PopularMoviesSection from './components/PopularMoviesSection';
 import HeroSpotlight from './components/HeroSpotlight';
 import TvSeriesSlider from './components/TvSeriesSlider';
 import WatchWithModal from './components/WatchWithModal';
+import AuthRequiredModal from './components/AuthRequiredModal';
 import MovieDetailsPage from './components/MovieDetailsPage';
 import ToggleSwitch from './components/ToggleSwitch';
 import LoginPage from './pages/LoginPage';
@@ -42,6 +43,7 @@ function App() {
   const [loadingTv, setLoadingTv] = useState(false);
   const [selectedWatchWithItem, setSelectedWatchWithItem] = useState(null);
   const [showWatchWithModal, setShowWatchWithModal] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const fetchMovies = async () => {
     try {
@@ -146,33 +148,38 @@ function App() {
         setSelectedWatchWithItem={setSelectedWatchWithItem}
         showWatchWithModal={showWatchWithModal}
         setShowWatchWithModal={setShowWatchWithModal}
+        showAuthModal={showAuthModal}
+        setShowAuthModal={setShowAuthModal}
       />
     </Router>
   );
 }
 
-function AppContent({ 
-  movies, 
-  tvShows,
-  loadingTv,
-  spotlightItems,
-  loading, 
-  error, 
-  popularCurrentPage, 
-  totalPopularPages, 
-  paginatePopular, 
-  currentPopularMovies, 
-  MOVIES_PER_ROW,
+function AppContent({
+  movies,
+  loading,
+  error,
   searchTerm,
-  onSearchChange,
   searchResults,
   isSearching,
+  popularCurrentPage,
+  spotlightItems,
+  tvShows,
+  loadingTv,
+  onSearchChange,
   selectedWatchWithItem,
   setSelectedWatchWithItem,
   showWatchWithModal,
-  setShowWatchWithModal
+  setShowWatchWithModal,
+  showAuthModal,
+  setShowAuthModal
 }) {
   const { isAuthenticated } = useAuth();
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
   
   return (
     <div
@@ -245,8 +252,12 @@ function AppContent({
                       <HeroSpotlight 
                         items={spotlightItems} 
                         onWatchWithClick={(item) => {
-                          setSelectedWatchWithItem(item);
-                          setShowWatchWithModal(true);
+                          if (!isAuthenticated) {
+                            setShowAuthModal(true);
+                          } else {
+                            setSelectedWatchWithItem(item);
+                            setShowWatchWithModal(true);
+                          }
                         }}
                       />
                       
@@ -263,6 +274,13 @@ function AppContent({
                         onClose={() => setShowWatchWithModal(false)}
                         initialMovie={selectedWatchWithItem}
                         onAddSuccess={() => alert('Watch With request sent!')}
+                      />
+
+                      <AuthRequiredModal
+                        isOpen={showAuthModal}
+                        onClose={() => setShowAuthModal(false)}
+                        title="Login Required"
+                        message="You must log in or register to request a Watch With session with your friends!"
                       />
                     </>
                   )}

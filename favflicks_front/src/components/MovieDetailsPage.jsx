@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import commentService from '../services/commentService';
 import ratingService from '../services/ratingService';
@@ -9,6 +9,7 @@ import WatchWithModal from './WatchWithModal';
 
 function MovieDetailsPage() {
   const { movieId } = useParams();
+  const navigate = useNavigate();
   const [movie, setMovie] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -453,26 +454,36 @@ function MovieDetailsPage() {
     <div className="relative flex size-full min-h-screen flex-col bg-[#171212] text-white">
       {/* Back button */}
       <div className="px-4 md:px-10 lg:px-20 py-5">
-        <Link to="/" className="text-white text-lg hover:underline">
-          &larr; Back to Home
-        </Link>
+        <button 
+          onClick={() => navigate(-1)} 
+          className="inline-flex items-center gap-2 text-gray-300 hover:text-white font-medium text-sm bg-[#271d1d] hover:bg-[#382929] px-4 py-2 rounded-xl transition-all border border-white/5 shadow-md"
+        >
+          &larr; Back
+        </button>
       </div>
 
       {/* Movie Header */}
       <div className="px-4 md:px-10 lg:px-40 py-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl md:text-4xl font-bold">{movie.title}</h1>
-          <div className="flex flex-wrap items-center mt-2 text-gray-400 gap-x-2">
-            <span>{movie.releaseYear}</span>
-            {movie.runtimeFormatted && <span className="mx-2">•</span>}
-            <span>{movie.runtimeFormatted}</span>
-            {movie.averageRating > 0 && <span className="mx-2">•</span>}
-            {movie.averageRating > 0 && (
-              <span className="flex items-center">
-                {movie.averageRating.toFixed(1)}
-                <span className="ml-1 text-yellow-400">★</span>
-              </span>
-            )}
+          <div className="flex flex-wrap items-center mt-3 text-gray-400 gap-3 text-sm">
+            <span className="bg-[#271d1d] px-2.5 py-1 rounded-md border border-white/5 font-semibold text-white">{movie.releaseYear}</span>
+            {movie.runtimeFormatted && <span>{movie.runtimeFormatted}</span>}
+            
+            {/* TMDB / IMDb Rating */}
+            <div className="flex items-center gap-1 bg-[#271d1d] px-3 py-1 rounded-md border border-yellow-500/20 text-yellow-400 font-bold">
+              <span>TMDB/IMDb:</span>
+              <span>{movie.averageRating > 0 ? movie.averageRating.toFixed(1) : 'N/A'}</span>
+              <span>★</span>
+            </div>
+
+            {/* FavFlicks Rating */}
+            <div className="flex items-center gap-1 bg-[#271d1d] px-3 py-1 rounded-md border border-red-500/20 text-red-400 font-bold">
+              <span>FavFlicks:</span>
+              <span>{userRatings.averageRating > 0 ? userRatings.averageRating.toFixed(1) : 'No ratings'}</span>
+              <span className="text-yellow-400">★</span>
+              {userRatings.totalReviews > 0 && <span className="text-gray-400 font-normal text-xs">({userRatings.totalReviews})</span>}
+            </div>
           </div>
         </div>
 
