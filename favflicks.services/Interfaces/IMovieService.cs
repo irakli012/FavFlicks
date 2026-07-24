@@ -17,11 +17,11 @@ namespace favflicks.services.Interfaces
         // TMDB API operations
         Task<Movie> ImportFromTmdbAsync(int tmdbId, string userId);
         Task<IEnumerable<Movie>> SearchTmdbMoviesAsync(string query);
-        Task<IEnumerable<Movie>> GetPopularTmdbMoviesAsync();
-        Task<IEnumerable<Movie>> GetPopularTmdbTvShowsAsync();
+        Task<IEnumerable<Movie>> GetPopularTmdbMoviesAsync(string? genre = null, string? sortBy = null);
+        Task<IEnumerable<Movie>> GetPopularTmdbTvShowsAsync(string? genre = null, string? sortBy = null);
 
         // Combined operations
-        Task<IEnumerable<Movie>> GetAllMoviesAsync(string userId, bool includeTmdb = false);
+        Task<IEnumerable<Movie>> GetAllMoviesAsync(string userId, bool includeTmdb = false, string? genre = null, string? sortBy = null);
         Task<IEnumerable<Movie>> SearchAllSourcesAsync(string query);
         Task<Movie?> GetMovieFromAllSourcesAsync(int id, string source, string userId);
     }

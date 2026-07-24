@@ -13,12 +13,14 @@ namespace favflicks.Controllers
     {
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Movie>>> GetAllMovies(
-        [FromQuery] bool includeTmdb = false)
+            [FromQuery] bool includeTmdb = false,
+            [FromQuery] string? genre = null,
+            [FromQuery] string? sortBy = null)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
-                var movies = await movieService.GetAllMoviesAsync(userId, includeTmdb);
+                var movies = await movieService.GetAllMoviesAsync(userId, includeTmdb, genre, sortBy);
                 return Ok(movies);
             }
             catch (Exception ex)
@@ -29,12 +31,14 @@ namespace favflicks.Controllers
         }
 
         [HttpGet("popular")]
-        public async Task<ActionResult<IEnumerable<Movie>>> GetPopularMovies()
+        public async Task<ActionResult<IEnumerable<Movie>>> GetPopularMovies(
+            [FromQuery] string? genre = null,
+            [FromQuery] string? sortBy = null)
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
-                var movies = await movieService.GetPopularTmdbMoviesAsync();
+                var movies = await movieService.GetPopularTmdbMoviesAsync(genre, sortBy);
                 return Ok(movies);
             }
             catch (Exception ex)
@@ -45,11 +49,13 @@ namespace favflicks.Controllers
         }
 
         [HttpGet("tv/popular")]
-        public async Task<ActionResult<IEnumerable<Movie>>> GetPopularTvShows()
+        public async Task<ActionResult<IEnumerable<Movie>>> GetPopularTvShows(
+            [FromQuery] string? genre = null,
+            [FromQuery] string? sortBy = null)
         {
             try
             {
-                var tvShows = await movieService.GetPopularTmdbTvShowsAsync();
+                var tvShows = await movieService.GetPopularTmdbTvShowsAsync(genre, sortBy);
                 return Ok(tvShows);
             }
             catch (Exception ex)

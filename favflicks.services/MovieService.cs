@@ -22,6 +22,31 @@ public class MovieService : IMovieService
     private readonly ILogger<MovieService> _logger;
     private readonly AsyncRetryPolicy<HttpResponseMessage> _retryPolicy;
 
+    private static readonly Dictionary<int, string> TmdbGenreMap = new()
+    {
+        { 28, "Action" },
+        { 12, "Adventure" },
+        { 16, "Animation" },
+        { 35, "Comedy" },
+        { 80, "Crime" },
+        { 99, "Documentary" },
+        { 18, "Drama" },
+        { 10751, "Family" },
+        { 14, "Fantasy" },
+        { 36, "History" },
+        { 27, "Horror" },
+        { 10402, "Music" },
+        { 9648, "Mystery" },
+        { 10749, "Romance" },
+        { 878, "Sci-Fi" },
+        { 10770, "TV Movie" },
+        { 53, "Thriller" },
+        { 10752, "War" },
+        { 37, "Western" },
+        { 10759, "Action & Adventure" },
+        { 10765, "Sci-Fi & Fantasy" }
+    };
+
     public MovieService(
         AppDbContext context,
         IHttpClientFactory httpClientFactory,
@@ -48,6 +73,7 @@ public class MovieService : IMovieService
             .Include(m => m.Comments)
             .Include(m => m.Ratings)
             .Include(m => m.Favorites)
+            .Include(m => m.AddedByUser)
             .AsNoTracking()
             .Select(m => new Movie
             {
@@ -59,14 +85,62 @@ public class MovieService : IMovieService
                 ExternalId = m.ExternalId,
                 ExternalUrl = m.ExternalUrl,
                 YouTubeTrailerId = m.YouTubeTrailerId,
+                Genre = m.Genre,
+                ReleaseDate = m.ReleaseDate,
+                DateAdded = m.DateAdded,
                 AverageRating = m.Ratings.Any() ? m.Ratings.Average(r => (int)r.Value) : 0,
+                AddedByUserId = m.AddedByUserId,
+                AddedByUser = m.AddedByUser != null ? new AppUser { Id = m.AddedByUser.Id, UserName = m.AddedByUser.UserName } : null,
                 IsFavorite = m.Favorites.Any(f => f.UserId == userId),
                 InWatchlist = m.Watchlists.Any(w => w.UserId == userId)
             })
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<Movie>> GetAllMoviesAsync(string userId, bool includeTmdb = false)
+    private static readonly Dictionary<string, int> MovieGenreToIdMap = new(StringComparer.OrdinalIgnoreCase)
+    {
+        { "Action", 28 },
+        { "Adventure", 12 },
+        { "Animation", 16 },
+        { "Comedy", 35 },
+        { "Crime", 80 },
+        { "Documentary", 99 },
+        { "Drama", 18 },
+        { "Family", 10751 },
+        { "Fantasy", 14 },
+        { "History", 36 },
+        { "Horror", 27 },
+        { "Music", 10402 },
+        { "Mystery", 9648 },
+        { "Romance", 10749 },
+        { "Sci-Fi", 878 },
+        { "TV Movie", 10770 },
+        { "Thriller", 53 },
+        { "War", 10752 },
+        { "Western", 37 }
+    };
+
+    private static readonly Dictionary<string, int> TvGenreToIdMap = new(StringComparer.OrdinalIgnoreCase)
+    {
+        { "Action & Adventure", 10759 },
+        { "Animation", 16 },
+        { "Comedy", 35 },
+        { "Crime", 80 },
+        { "Documentary", 99 },
+        { "Drama", 18 },
+        { "Family", 10751 },
+        { "Kids", 10762 },
+        { "Mystery", 9648 },
+        { "News", 10763 },
+        { "Reality", 10764 },
+        { "Sci-Fi & Fantasy", 10765 },
+        { "Soap", 10766 },
+        { "Talk", 10767 },
+        { "War & Politics", 10768 },
+        { "Western", 37 }
+    };
+
+    public async Task<IEnumerable<Movie>> GetAllMoviesAsync(string userId, bool includeTmdb = false, string? genre = null, string? sortBy = null)
     {
         try
         {
@@ -79,17 +153,45 @@ public class MovieService : IMovieService
                 return localMovies;
             }
 
-            // Get popular TMDB movies
-            var tmdbMovies = await GetPopularTmdbMoviesAsync();
+            // Get popular TMDB movies with genre/sort options
+            var tmdbMovies = await GetPopularTmdbMoviesAsync(genre, sortBy);
             _logger.LogInformation("Found {Count} TMDB movies", tmdbMovies.Count());
 
-            // Combine results
-            // Custom movies first (newest added), then TMDB by rating
-            var combinedMovies = localMovies
-                .OrderByDescending(m => m.DateAdded)
-                .Concat(tmdbMovies.OrderByDescending(m => m.AverageRating))
-                .ToList();
+            // Deduplicate local movies and TMDB movies
+            var localMoviesList = localMovies.ToList();
+            foreach (var tmdbMovie in tmdbMovies)
+            {
+                var existing = localMoviesList.FirstOrDefault(m =>
+                    (!string.IsNullOrEmpty(m.ExternalId) && m.ExternalId == tmdbMovie.ExternalId) ||
+                    (!string.IsNullOrEmpty(m.Name) && m.Name.Equals(tmdbMovie.Name, StringComparison.OrdinalIgnoreCase))
+                );
 
+                if (existing != null)
+                {
+                    if (existing.AverageRating <= 0)
+                    {
+                        existing.AverageRating = tmdbMovie.AverageRating;
+                    }
+                    if (string.IsNullOrEmpty(existing.Genre))
+                    {
+                        existing.Genre = tmdbMovie.Genre;
+                    }
+                    if (string.IsNullOrEmpty(existing.ImagePath))
+                    {
+                        existing.ImagePath = tmdbMovie.ImagePath;
+                    }
+                    if (string.IsNullOrEmpty(existing.ExternalId))
+                    {
+                        existing.ExternalId = tmdbMovie.ExternalId;
+                    }
+                }
+                else
+                {
+                    localMoviesList.Add(tmdbMovie);
+                }
+            }
+
+            var combinedMovies = localMoviesList.ToList();
             _logger.LogInformation("Returning {Count} combined movies", combinedMovies.Count);
             return combinedMovies;
         }
@@ -100,7 +202,7 @@ public class MovieService : IMovieService
         }
     }
 
-    public async Task<IEnumerable<Movie>> GetPopularTmdbMoviesAsync()
+    public async Task<IEnumerable<Movie>> GetPopularTmdbMoviesAsync(string? genre = null, string? sortBy = null)
     {
         using var httpClient = _httpClientFactory.CreateClient("TMDB");
 
@@ -109,12 +211,46 @@ public class MovieService : IMovieService
             var movies = new List<Movie>();
             var tasks = new List<Task<HttpResponseMessage>>();
 
-            // Fetch 5 pages to get 100 movies
-            for (int i = 1; i <= 5; i++)
+            int? genreId = null;
+            if (!string.IsNullOrEmpty(genre) && MovieGenreToIdMap.TryGetValue(genre, out var gId))
             {
-                var page = i;
-                tasks.Add(_retryPolicy.ExecuteAsync(() =>
-                    httpClient.GetAsync($"movie/popular?api_key={_tmdbSettings.ApiKey}&page={page}")));
+                genreId = gId;
+            }
+
+            string tmdbSort = sortBy switch
+            {
+                "rated" => "vote_average.desc",
+                "newest" => "primary_release_date.desc",
+                _ => "popularity.desc"
+            };
+
+            // If a specific genre or sort is selected, use TMDB Discover endpoint
+            if (genreId.HasValue || (sortBy != null && sortBy != "popular"))
+            {
+                for (int page = 1; page <= 4; page++)
+                {
+                    var p = page;
+                    var url = $"discover/movie?api_key={_tmdbSettings.ApiKey}&page={p}&sort_by={tmdbSort}";
+                    if (genreId.HasValue) url += $"&with_genres={genreId.Value}";
+                    if (sortBy == "rated") url += "&vote_count.gte=300";
+
+                    tasks.Add(_retryPolicy.ExecuteAsync(() => httpClient.GetAsync(url)));
+                }
+            }
+            else
+            {
+                // Default: fetch multi-category (popular, top_rated, now_playing)
+                var endpoints = new[] { "movie/popular", "movie/top_rated", "movie/now_playing" };
+                foreach (var endpoint in endpoints)
+                {
+                    for (int i = 1; i <= 3; i++)
+                    {
+                        var page = i;
+                        var ep = endpoint;
+                        tasks.Add(_retryPolicy.ExecuteAsync(() =>
+                            httpClient.GetAsync($"{ep}?api_key={_tmdbSettings.ApiKey}&page={page}")));
+                    }
+                }
             }
 
             var responses = await Task.WhenAll(tasks);
@@ -135,12 +271,25 @@ public class MovieService : IMovieService
                 {
                     try
                     {
+                        var genreNames = new List<string>();
+                        if (result.TryGetProperty("genre_ids", out var gIds) && gIds.ValueKind == JsonValueKind.Array)
+                        {
+                            foreach (var idElem in gIds.EnumerateArray())
+                            {
+                                if (idElem.TryGetInt32(out var idVal) && TmdbGenreMap.TryGetValue(idVal, out var gName))
+                                {
+                                    genreNames.Add(gName);
+                                }
+                            }
+                        }
+
                         var movie = new Movie
                         {
                             Source = MovieSource.TMDB,
                             ExternalId = result.GetProperty("id").GetInt32().ToString(),
                             Name = result.GetProperty("title").GetString(),
                             Description = result.GetProperty("overview").GetString(),
+                            Genre = genreNames.Count > 0 ? string.Join(", ", genreNames) : genre,
                             ImagePath = result.GetProperty("poster_path").GetString() != null
                                 ? $"{_tmdbSettings.ImageBaseUrl}w500{result.GetProperty("poster_path").GetString()}"
                                 : null,
@@ -168,17 +317,16 @@ public class MovieService : IMovieService
             }
 
             _logger.LogInformation("Successfully parsed {Count} TMDB movies", movies.Count);
-            // Remove duplicates just in case TMDB popular pages shifted during fetch
             return movies.DistinctBy(m => m.ExternalId).ToList();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error fetching popular TMDB movies");
+            _logger.LogError(ex, "Error fetching TMDB movies");
             return Enumerable.Empty<Movie>();
         }
     }
 
-    public async Task<IEnumerable<Movie>> GetPopularTmdbTvShowsAsync()
+    public async Task<IEnumerable<Movie>> GetPopularTmdbTvShowsAsync(string? genre = null, string? sortBy = null)
     {
         using var httpClient = _httpClientFactory.CreateClient("TMDB");
 
@@ -187,11 +335,44 @@ public class MovieService : IMovieService
             var tvShows = new List<Movie>();
             var tasks = new List<Task<HttpResponseMessage>>();
 
-            for (int i = 1; i <= 3; i++)
+            int? genreId = null;
+            if (!string.IsNullOrEmpty(genre) && TvGenreToIdMap.TryGetValue(genre, out var gId))
             {
-                var page = i;
-                tasks.Add(_retryPolicy.ExecuteAsync(() =>
-                    httpClient.GetAsync($"tv/popular?api_key={_tmdbSettings.ApiKey}&page={page}")));
+                genreId = gId;
+            }
+
+            string tmdbSort = sortBy switch
+            {
+                "rated" => "vote_average.desc",
+                "newest" => "first_air_date.desc",
+                _ => "popularity.desc"
+            };
+
+            if (genreId.HasValue || (sortBy != null && sortBy != "popular"))
+            {
+                for (int page = 1; page <= 4; page++)
+                {
+                    var p = page;
+                    var url = $"discover/tv?api_key={_tmdbSettings.ApiKey}&page={p}&sort_by={tmdbSort}";
+                    if (genreId.HasValue) url += $"&with_genres={genreId.Value}";
+                    if (sortBy == "rated") url += "&vote_count.gte=150";
+
+                    tasks.Add(_retryPolicy.ExecuteAsync(() => httpClient.GetAsync(url)));
+                }
+            }
+            else
+            {
+                var endpoints = new[] { "tv/popular", "tv/top_rated", "tv/on_the_air" };
+                foreach (var endpoint in endpoints)
+                {
+                    for (int i = 1; i <= 3; i++)
+                    {
+                        var page = i;
+                        var ep = endpoint;
+                        tasks.Add(_retryPolicy.ExecuteAsync(() =>
+                            httpClient.GetAsync($"{ep}?api_key={_tmdbSettings.ApiKey}&page={page}")));
+                    }
+                }
             }
 
             var responses = await Task.WhenAll(tasks);
@@ -212,6 +393,18 @@ public class MovieService : IMovieService
                 {
                     try
                     {
+                        var genreNames = new List<string>();
+                        if (result.TryGetProperty("genre_ids", out var gIds) && gIds.ValueKind == JsonValueKind.Array)
+                        {
+                            foreach (var idElem in gIds.EnumerateArray())
+                            {
+                                if (idElem.TryGetInt32(out var idVal) && TmdbGenreMap.TryGetValue(idVal, out var gName))
+                                {
+                                    genreNames.Add(gName);
+                                }
+                            }
+                        }
+
                         var tvName = result.TryGetProperty("name", out var n) ? n.GetString() : "Untitled Series";
                         var tvShow = new Movie
                         {
@@ -219,6 +412,7 @@ public class MovieService : IMovieService
                             ExternalId = $"tv_{result.GetProperty("id").GetInt32()}",
                             Name = tvName ?? "Untitled Series",
                             Description = result.TryGetProperty("overview", out var ov) ? ov.GetString() : "",
+                            Genre = genreNames.Count > 0 ? string.Join(", ", genreNames) : (genre ?? "TV Series"),
                             ImagePath = result.TryGetProperty("poster_path", out var p) && p.GetString() != null
                                 ? $"{_tmdbSettings.ImageBaseUrl}w500{p.GetString()}"
                                 : null,
@@ -230,7 +424,6 @@ public class MovieService : IMovieService
                                 : null,
                             AverageRating = (double)(result.TryGetProperty("vote_average", out var va) ? va.GetDecimal() : 0),
                             ExternalUrl = $"https://www.themoviedb.org/tv/{result.GetProperty("id").GetInt32()}",
-                            Genre = "TV Series",
                             Tags = new List<Tag>(),
                             Ratings = new List<MovieRating>(),
                             Comments = new List<Comment>(),
@@ -251,7 +444,7 @@ public class MovieService : IMovieService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error fetching popular TMDB TV shows");
+            _logger.LogError(ex, "Error fetching TMDB TV shows");
             return Enumerable.Empty<Movie>();
         }
     }
