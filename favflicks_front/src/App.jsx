@@ -17,6 +17,8 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import AddMoviePage from './pages/AddMoviePage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import ProfilePage from './pages/ProfilePage';
+import MoviesPage from './pages/MoviesPage';
+import TvShowsPage from './pages/TvShowsPage';
 import './index.css';
 import Snowfall from 'react-snowfall'
 
@@ -269,6 +271,8 @@ function AppContent({
             }
           />
           <Route path="/movie/:movieId" element={<MovieDetailsPage />} />
+          <Route path="/movies" element={<MoviesPage />} />
+          <Route path="/tv-shows" element={<TvShowsPage />} />
           <Route path="/feed" element={<FeedPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
